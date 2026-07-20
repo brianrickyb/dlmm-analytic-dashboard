@@ -108,3 +108,49 @@ describe('createNewsService — error classification', () => {
     await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamMalformedError);
   });
 });
+
+describe('createNewsService — caching', () => {
+  it('reuses the cached result for an identical query within the TTL', async () => {
+    const fetchImpl = fakeFetchOnce(RAW_RESPONSE);
+    let currentTime = 1_000_000;
+    const service = createNewsService({
+      apiKey: 'test-key',
+      fetchImpl,
+      now: () => currentTime,
+      cacheTtlMs: 60_000,
+    });
+
+    await service.fetchNews({ currencies: 'BTC' });
+    currentTime += 30_000; // still within the 60s TTL
+    await service.fetchNews({ currencies: 'BTC' });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches once the TTL has expired', async () => {
+    const fetchImpl = fakeFetchOnce(RAW_RESPONSE);
+    let currentTime = 1_000_000;
+    const service = createNewsService({
+      apiKey: 'test-key',
+      fetchImpl,
+      now: () => currentTime,
+      cacheTtlMs: 60_000,
+    });
+
+    await service.fetchNews({ currencies: 'BTC' });
+    currentTime += 60_001; // just past the TTL
+    await service.fetchNews({ currencies: 'BTC' });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('caches different query combinations independently', async () => {
+    const fetchImpl = fakeFetchOnce(RAW_RESPONSE);
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await service.fetchNews({ currencies: 'BTC' });
+    await service.fetchNews({ currencies: 'SOL' });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+});
