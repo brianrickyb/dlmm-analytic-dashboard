@@ -8,7 +8,7 @@ export function buildServer() {
   app.register(cors, { origin: true });
 
   app.get('/health', async () => ({ status: 'ok' }));
-  registerNewsRoutes(app, { apiKey: process.env.CRYPTOPANIC_API_KEY });
+  registerNewsRoutes(app);
 
   return app;
 }

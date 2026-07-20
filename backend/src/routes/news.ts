@@ -1,33 +1,23 @@
 import type { FastifyInstance } from 'fastify';
-import {
-  createNewsService,
-  UpstreamMalformedError,
-  UpstreamRejectedError,
-  UpstreamUnavailableError,
-} from '../services/cryptopanic.js';
+import { createNewsService, AllFeedsUnavailableError, type NewsPost, type NewsQuery } from '../services/rss.js';
 
-export function registerNewsRoutes(app: FastifyInstance, deps: { apiKey?: string }): void {
-  const newsService = deps.apiKey ? createNewsService({ apiKey: deps.apiKey }) : null;
+interface NewsServiceLike {
+  fetchNews(query: NewsQuery): Promise<NewsPost[]>;
+}
+
+export function registerNewsRoutes(app: FastifyInstance, deps: { newsService?: NewsServiceLike } = {}): void {
+  const newsService = deps.newsService ?? createNewsService();
 
   app.get('/api/news', async (request, reply) => {
-    if (!newsService) {
-      reply.code(500);
-      return { error: 'Server is missing CRYPTOPANIC_API_KEY.' };
-    }
-
-    const { currencies, filter } = request.query as { currencies?: string; filter?: string };
+    const { currencies, source } = request.query as { currencies?: string; source?: string };
 
     try {
-      const posts = await newsService.fetchNews({ currencies, filter });
+      const posts = await newsService.fetchNews({ currencies, source });
       return { posts };
     } catch (err) {
-      if (err instanceof UpstreamUnavailableError) {
+      if (err instanceof AllFeedsUnavailableError) {
         reply.code(503);
-        return { error: 'News provider is unavailable right now.' };
-      }
-      if (err instanceof UpstreamRejectedError || err instanceof UpstreamMalformedError) {
-        reply.code(502);
-        return { error: 'News provider returned an unexpected response.' };
+        return { error: 'News feeds are unavailable right now.' };
       }
       throw err;
     }
