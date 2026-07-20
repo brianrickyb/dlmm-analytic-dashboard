@@ -1,22 +1,21 @@
-import type { NewsFilter } from '../types/news';
+import type { NewsSource } from '../types/news';
 
-const FILTERS: { value: NewsFilter | undefined; label: string }[] = [
+const SOURCES: { value: NewsSource | undefined; label: string }[] = [
   { value: undefined, label: 'All' },
-  { value: 'rising', label: 'Rising' },
-  { value: 'hot', label: 'Hot' },
-  { value: 'bullish', label: 'Bullish' },
-  { value: 'bearish', label: 'Bearish' },
-  { value: 'important', label: 'Important' },
+  { value: 'coindesk', label: 'CoinDesk' },
+  { value: 'cointelegraph', label: 'Cointelegraph' },
+  { value: 'theblock', label: 'The Block' },
+  { value: 'decrypt', label: 'Decrypt' },
 ];
 
 interface NewsFiltersProps {
   currencies: string;
   onCurrenciesChange: (value: string) => void;
-  filter: NewsFilter | undefined;
-  onFilterChange: (filter: NewsFilter | undefined) => void;
+  source: NewsSource | undefined;
+  onSourceChange: (source: NewsSource | undefined) => void;
 }
 
-export function NewsFilters({ currencies, onCurrenciesChange, filter, onFilterChange }: NewsFiltersProps) {
+export function NewsFilters({ currencies, onCurrenciesChange, source, onSourceChange }: NewsFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <input
@@ -28,13 +27,13 @@ export function NewsFilters({ currencies, onCurrenciesChange, filter, onFilterCh
         style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
       />
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => {
-          const active = f.value === filter;
+        {SOURCES.map((s) => {
+          const active = s.value === source;
           return (
             <button
-              key={f.label}
+              key={s.label}
               type="button"
-              onClick={() => onFilterChange(f.value)}
+              onClick={() => onSourceChange(s.value)}
               className="rounded-full border px-3 py-1 text-xs font-medium"
               style={{
                 borderColor: 'var(--border)',
@@ -42,7 +41,7 @@ export function NewsFilters({ currencies, onCurrenciesChange, filter, onFilterCh
                 color: active ? '#ffffff' : 'var(--text-secondary)',
               }}
             >
-              {f.label}
+              {s.label}
             </button>
           );
         })}

@@ -63,17 +63,6 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
             <span>{post.sourceTitle}</span>
             <span>&middot;</span>
             <span>{timeAgo(post.publishedAt)}</span>
-            {post.currencies.map((code) => (
-              <span key={code} className="rounded-full border px-2 py-0.5" style={{ borderColor: 'var(--border)' }}>
-                {code}
-              </span>
-            ))}
-            {post.votes.positive > post.votes.negative ? (
-              <span style={{ color: 'var(--status-good)' }}>▲ {post.votes.positive}</span>
-            ) : post.votes.negative > post.votes.positive ? (
-              <span style={{ color: 'var(--status-critical)' }}>▼ {post.votes.negative}</span>
-            ) : null}
-            {post.votes.important > 0 ? <span style={{ color: 'var(--status-warning)' }}>★ important</span> : null}
           </div>
         </li>
       ))}

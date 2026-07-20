@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { NewsFilters } from '../components/NewsFilters';
 import { NewsList } from '../components/NewsList';
 import { fetchNews } from '../lib/api/news';
-import type { NewsFilter, NewsPost } from '../types/news';
+import type { NewsPost, NewsSource } from '../types/news';
 
 export function NewsPage() {
   const [currencies, setCurrencies] = useState('');
-  const [filter, setFilter] = useState<NewsFilter | undefined>(undefined);
+  const [source, setSource] = useState<NewsSource | undefined>(undefined);
   const [status, setStatus] = useState<'loading' | 'error' | 'ready'>('loading');
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -16,7 +16,7 @@ export function NewsPage() {
     let cancelled = false;
     setStatus('loading');
 
-    fetchNews({ currencies: currencies || undefined, filter })
+    fetchNews({ currencies: currencies || undefined, source })
       .then((result) => {
         if (cancelled) return;
         setPosts(result);
@@ -31,14 +31,14 @@ export function NewsPage() {
     return () => {
       cancelled = true;
     };
-  }, [currencies, filter, requestId]);
+  }, [currencies, source, requestId]);
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
         Crypto News
       </h1>
-      <NewsFilters currencies={currencies} onCurrenciesChange={setCurrencies} filter={filter} onFilterChange={setFilter} />
+      <NewsFilters currencies={currencies} onCurrenciesChange={setCurrencies} source={source} onSourceChange={setSource} />
       <NewsList status={status} posts={posts} errorMessage={errorMessage} onRetry={() => setRequestId((n) => n + 1)} />
     </div>
   );
