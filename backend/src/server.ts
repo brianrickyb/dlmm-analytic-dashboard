@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { registerNewsRoutes } from './routes/news.js';
 
 export function buildServer() {
   const app = Fastify({ logger: true });
@@ -7,6 +8,7 @@ export function buildServer() {
   app.register(cors, { origin: true });
 
   app.get('/health', async () => ({ status: 'ok' }));
+  registerNewsRoutes(app, { apiKey: process.env.CRYPTOPANIC_API_KEY });
 
   return app;
 }
