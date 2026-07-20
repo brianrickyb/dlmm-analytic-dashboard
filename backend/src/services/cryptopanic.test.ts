@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createNewsService } from './cryptopanic.js';
+import { createNewsService, UpstreamMalformedError, UpstreamRejectedError, UpstreamUnavailableError } from './cryptopanic.js';
 
 const RAW_RESPONSE = {
   results: [
@@ -56,5 +56,55 @@ describe('createNewsService — successful parsing', () => {
     expect(calledUrl.searchParams.get('public')).toBe('true');
     expect(calledUrl.searchParams.get('currencies')).toBe('BTC,SOL');
     expect(calledUrl.searchParams.get('filter')).toBe('rising');
+  });
+});
+
+describe('createNewsService — error classification', () => {
+  it('throws UpstreamUnavailableError when the network request itself fails', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamUnavailableError);
+  });
+
+  it('throws UpstreamRejectedError on a 429 response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({}) } as Response);
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamRejectedError);
+  });
+
+  it('throws UpstreamRejectedError on a 401 response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => ({}) } as Response);
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamRejectedError);
+  });
+
+  it('throws UpstreamUnavailableError on a 500 response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) } as Response);
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamUnavailableError);
+  });
+
+  it('throws UpstreamMalformedError when the response body is not valid JSON', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected token');
+      },
+    } as unknown as Response);
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamMalformedError);
+  });
+
+  it('throws UpstreamMalformedError when the response is missing the results field', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ oops: true }) } as Response);
+    const service = createNewsService({ apiKey: 'test-key', fetchImpl });
+
+    await expect(service.fetchNews({})).rejects.toBeInstanceOf(UpstreamMalformedError);
   });
 });
