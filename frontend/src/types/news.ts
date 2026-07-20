@@ -1,15 +1,9 @@
 export interface NewsPost {
-  id: number;
+  id: string;
   title: string;
   url: string;
   sourceTitle: string;
   publishedAt: string;
-  currencies: string[];
-  votes: {
-    positive: number;
-    negative: number;
-    important: number;
-  };
 }
 
-export type NewsFilter = 'rising' | 'hot' | 'bullish' | 'bearish' | 'important';
+export type NewsSource = 'coindesk' | 'cointelegraph' | 'theblock' | 'decrypt';
