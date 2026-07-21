@@ -28,8 +28,11 @@ export interface NetYieldResult {
  */
 export function calculateNetYield({ depositUsd, entryDate, lowerPrice, upperPrice, series }: NetYieldInput): NetYieldResult {
   const entryIndex = series.findIndex((s) => s.snapshotAt >= entryDate);
-  const entrySnapshot = entryIndex >= 0 ? series[entryIndex] : series[0];
-  const heldSnapshots = entryIndex >= 0 ? series.slice(entryIndex) : series;
+  // If entryDate is after every snapshot we have, there's no history for this
+  // position yet — treat it as "just entered as of the latest snapshot" (0
+  // elapsed days) rather than silently backdating to the start of the series.
+  const heldSnapshots = entryIndex >= 0 ? series.slice(entryIndex) : series.slice(-1);
+  const entrySnapshot = heldSnapshots[0];
 
   let feesEarnedUsd = 0;
   let daysInRange = 0;
