@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createCoinGeckoService } from './coingecko.js';
+import { createCoinGeckoService, CoinGeckoUnavailableError } from './coingecko.js';
 
 function coinItem(overrides: { id: string; name: string; symbol: string; marketCapRank: number | null; price: number; changePct: number }) {
   return {
@@ -54,5 +54,74 @@ describe('createCoinGeckoService — parsing and sorting', () => {
     const coins = await service.getTrending();
 
     expect(coins.map((c) => c.id)).toEqual(['brand-new', 'small', 'medium', 'big']);
+  });
+});
+
+describe('createCoinGeckoService — error classification', () => {
+  it('throws CoinGeckoUnavailableError when the network request fails', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    const service = createCoinGeckoService({ fetchImpl });
+
+    await expect(service.getTrending()).rejects.toBeInstanceOf(CoinGeckoUnavailableError);
+  });
+
+  it('throws CoinGeckoUnavailableError on a 429 response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({}) } as Response);
+    const service = createCoinGeckoService({ fetchImpl });
+
+    await expect(service.getTrending()).rejects.toBeInstanceOf(CoinGeckoUnavailableError);
+  });
+
+  it('throws CoinGeckoUnavailableError on a 500 response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) } as Response);
+    const service = createCoinGeckoService({ fetchImpl });
+
+    await expect(service.getTrending()).rejects.toBeInstanceOf(CoinGeckoUnavailableError);
+  });
+
+  it('throws CoinGeckoUnavailableError when the response body is not valid JSON', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected token');
+      },
+    } as unknown as Response);
+    const service = createCoinGeckoService({ fetchImpl });
+
+    await expect(service.getTrending()).rejects.toBeInstanceOf(CoinGeckoUnavailableError);
+  });
+
+  it('throws CoinGeckoUnavailableError when the response is missing the coins field', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ oops: true }) } as Response);
+    const service = createCoinGeckoService({ fetchImpl });
+
+    await expect(service.getTrending()).rejects.toBeInstanceOf(CoinGeckoUnavailableError);
+  });
+});
+
+describe('createCoinGeckoService — caching', () => {
+  it('reuses the cached result within the TTL', async () => {
+    const fetchImpl = fakeFetchOnce({ coins: [] });
+    let currentTime = 1_000_000;
+    const service = createCoinGeckoService({ fetchImpl, now: () => currentTime, cacheTtlMs: 60_000 });
+
+    await service.getTrending();
+    currentTime += 30_000;
+    await service.getTrending();
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches once the TTL has expired', async () => {
+    const fetchImpl = fakeFetchOnce({ coins: [] });
+    let currentTime = 1_000_000;
+    const service = createCoinGeckoService({ fetchImpl, now: () => currentTime, cacheTtlMs: 60_000 });
+
+    await service.getTrending();
+    currentTime += 60_001;
+    await service.getTrending();
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 });
