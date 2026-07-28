@@ -73,4 +73,29 @@ describe('createBybitService — merge and top-3 computation', () => {
     // Lowest buyRatio: BTCUSDT (0.50), ETHUSDT (0.51), SOLUSDT (0.52)
     expect(result.topShortSymbols).toEqual(['BTCUSDT', 'ETHUSDT', 'SOLUSDT']);
   });
+
+  it('keeps topLongSymbols and topShortSymbols disjoint when few pairs survive merging', async () => {
+    // Only 4 of the 15 pairs have both ticker and ratio data; the rest are
+    // dropped as if their account-ratio fetch failed (simulates the scenario
+    // from Task 2's partial-failure tolerance, but exercised here since it's
+    // this task's top-3 computation that must stay correct under it).
+    const survivingSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
+    const tickers = survivingSymbols.map((symbol) => ({ symbol, fundingRate: '0.0001', price24hPcnt: '0.02' }));
+    const ratios: Record<string, { buyRatio: string; sellRatio: string }> = {
+      BTCUSDT: { buyRatio: '0.90', sellRatio: '0.10' },
+      ETHUSDT: { buyRatio: '0.80', sellRatio: '0.20' },
+      SOLUSDT: { buyRatio: '0.20', sellRatio: '0.80' },
+      BNBUSDT: { buyRatio: '0.10', sellRatio: '0.90' },
+    };
+    const fetchImpl = buildFakeFetch({ tickers, ratios });
+    const service = createBybitService({ fetchImpl });
+
+    const result = await service.getMajors();
+
+    expect(result.pairs).toHaveLength(4);
+    expect(result.topLongSymbols).toEqual(['BTCUSDT', 'ETHUSDT', 'SOLUSDT']);
+    expect(result.topShortSymbols).toEqual(['BNBUSDT']);
+    const overlap = result.topLongSymbols.filter((s) => result.topShortSymbols.includes(s));
+    expect(overlap).toEqual([]);
+  });
 });

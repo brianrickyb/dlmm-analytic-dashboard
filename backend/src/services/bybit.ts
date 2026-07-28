@@ -128,7 +128,8 @@ export function createBybitService(deps: BybitServiceDeps = {}) {
 
     const sortedByBuyRatioDesc = [...pairs].sort((a, b) => b.buyRatio - a.buyRatio);
     const topLongSymbols = sortedByBuyRatioDesc.slice(0, 3).map((p) => p.symbol);
-    const topShortSymbols = sortedByBuyRatioDesc.slice(-3).reverse().map((p) => p.symbol);
+    const remainingForShort = sortedByBuyRatioDesc.filter((p) => !topLongSymbols.includes(p.symbol));
+    const topShortSymbols = remainingForShort.slice(-3).reverse().map((p) => p.symbol);
 
     const result: MajorsResult = { pairs, topLongSymbols, topShortSymbols };
     cache = { expiresAt: now() + cacheTtlMs, data: result };
