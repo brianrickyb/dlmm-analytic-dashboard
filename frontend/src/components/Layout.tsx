@@ -21,6 +21,9 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/news" style={{ color: 'var(--text-secondary)' }}>
               News
             </Link>
+            <Link to="/screener" style={{ color: 'var(--text-secondary)' }}>
+              Screener
+            </Link>
           </nav>
         </div>
       </header>
