@@ -140,3 +140,31 @@ describe('createBybitService — total failure', () => {
     await expect(service.getMajors()).rejects.toBeInstanceOf(BybitUnavailableError);
   });
 });
+
+describe('createBybitService — caching', () => {
+  it('reuses the cached result within the TTL (no re-fetch)', async () => {
+    const fetchImpl = buildFakeFetch({ tickers: buildTickers(), ratios: buildRatios() });
+    let currentTime = 1_000_000;
+    const service = createBybitService({ fetchImpl, now: () => currentTime, cacheTtlMs: 60_000 });
+
+    await service.getMajors();
+    const callsAfterFirst = fetchImpl.mock.calls.length;
+    currentTime += 30_000;
+    await service.getMajors();
+
+    expect(fetchImpl.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it('re-fetches once the TTL has expired', async () => {
+    const fetchImpl = buildFakeFetch({ tickers: buildTickers(), ratios: buildRatios() });
+    let currentTime = 1_000_000;
+    const service = createBybitService({ fetchImpl, now: () => currentTime, cacheTtlMs: 60_000 });
+
+    await service.getMajors();
+    const callsAfterFirst = fetchImpl.mock.calls.length;
+    currentTime += 60_001;
+    await service.getMajors();
+
+    expect(fetchImpl.mock.calls.length).toBe(callsAfterFirst * 2);
+  });
+});
