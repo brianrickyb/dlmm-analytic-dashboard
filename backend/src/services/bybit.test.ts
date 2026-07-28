@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createBybitService, PAIR_LIST } from './bybit.js';
+import { createBybitService, PAIR_LIST, BybitUnavailableError } from './bybit.js';
 
 function buildFakeFetch(opts: {
   tickers: { symbol: string; fundingRate: string; price24hPcnt: string }[] | 'fail' | 'http-error';
@@ -97,5 +97,46 @@ describe('createBybitService — merge and top-3 computation', () => {
     expect(result.topShortSymbols).toEqual(['BNBUSDT']);
     const overlap = result.topLongSymbols.filter((s) => result.topShortSymbols.includes(s));
     expect(overlap).toEqual([]);
+  });
+});
+
+describe('createBybitService — partial failure tolerance', () => {
+  it('omits a pair whose account-ratio call fails, keeping the rest', async () => {
+    const ratios = buildRatios();
+    ratios.BTCUSDT = 'fail';
+    const fetchImpl = buildFakeFetch({ tickers: buildTickers(), ratios });
+    const service = createBybitService({ fetchImpl });
+
+    const result = await service.getMajors();
+
+    expect(result.pairs).toHaveLength(PAIR_LIST.length - 1);
+    expect(result.pairs.find((p) => p.symbol === 'BTCUSDT')).toBeUndefined();
+  });
+
+  it('omits a pair present in the ratio results but missing from the bulk ticker list', async () => {
+    const tickers = buildTickers().filter((t) => t.symbol !== 'BTCUSDT');
+    const fetchImpl = buildFakeFetch({ tickers, ratios: buildRatios() });
+    const service = createBybitService({ fetchImpl });
+
+    const result = await service.getMajors();
+
+    expect(result.pairs).toHaveLength(PAIR_LIST.length - 1);
+    expect(result.pairs.find((p) => p.symbol === 'BTCUSDT')).toBeUndefined();
+  });
+});
+
+describe('createBybitService — total failure', () => {
+  it('throws BybitUnavailableError when the bulk ticker call itself fails', async () => {
+    const fetchImpl = buildFakeFetch({ tickers: 'fail', ratios: buildRatios() });
+    const service = createBybitService({ fetchImpl });
+
+    await expect(service.getMajors()).rejects.toBeInstanceOf(BybitUnavailableError);
+  });
+
+  it('throws BybitUnavailableError when the bulk ticker call returns an HTTP error', async () => {
+    const fetchImpl = buildFakeFetch({ tickers: 'http-error', ratios: buildRatios() });
+    const service = createBybitService({ fetchImpl });
+
+    await expect(service.getMajors()).rejects.toBeInstanceOf(BybitUnavailableError);
   });
 });
