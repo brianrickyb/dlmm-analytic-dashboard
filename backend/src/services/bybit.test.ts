@@ -5,7 +5,8 @@ function buildFakeFetch(opts: {
   tickers: { symbol: string; fundingRate: string; price24hPcnt: string }[] | 'fail' | 'http-error';
   ratios: Record<string, { buyRatio: string; sellRatio: string } | 'fail' | 'http-error'>;
 }) {
-  return vi.fn(async (url: string) => {
+  return vi.fn(async (input: RequestInfo | URL) => {
+    const url = input.toString();
     if (url.includes('/v5/market/tickers')) {
       if (opts.tickers === 'fail') throw new Error('network down');
       if (opts.tickers === 'http-error') {
@@ -33,8 +34,8 @@ function buildFakeFetch(opts: {
 }
 
 // buyRatio ascending with PAIR_LIST index: BTCUSDT (index 0) = 0.50 (lowest) ... NEARUSDT (index 14) = 0.64 (highest)
-function buildRatios() {
-  const ratios: Record<string, { buyRatio: string; sellRatio: string }> = {};
+function buildRatios(): Record<string, { buyRatio: string; sellRatio: string } | 'fail' | 'http-error'> {
+  const ratios: Record<string, { buyRatio: string; sellRatio: string } | 'fail' | 'http-error'> = {};
   PAIR_LIST.forEach((symbol, i) => {
     const buyRatio = (0.5 + i * 0.01).toFixed(2);
     const sellRatio = (1 - Number(buyRatio)).toFixed(2);

@@ -36,7 +36,7 @@ function accountRatioUrl(symbol: string): string {
 async function fetchBulkTickers(fetchImpl: typeof fetch): Promise<Map<string, { fundingRate: number; price24hPct: number }>> {
   let response: Response;
   try {
-    response = await fetchImpl(TICKERS_URL);
+    response = await fetchImpl(TICKERS_URL, { signal: AbortSignal.timeout(8000) });
   } catch (err) {
     throw new BybitUnavailableError('Failed to reach Bybit tickers endpoint', { cause: err });
   }
@@ -74,7 +74,7 @@ async function fetchAccountRatio(
 ): Promise<{ symbol: string; buyRatio: number; sellRatio: number } | null> {
   let response: Response;
   try {
-    response = await fetchImpl(accountRatioUrl(symbol));
+    response = await fetchImpl(accountRatioUrl(symbol), { signal: AbortSignal.timeout(8000) });
   } catch {
     return null;
   }

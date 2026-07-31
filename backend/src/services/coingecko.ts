@@ -75,7 +75,7 @@ export function createCoinGeckoService(deps: CoinGeckoServiceDeps = {}) {
 
     let response: Response;
     try {
-      response = await fetchImpl(TRENDING_URL);
+      response = await fetchImpl(TRENDING_URL, { signal: AbortSignal.timeout(8000) });
     } catch (err) {
       throw new CoinGeckoUnavailableError('Failed to reach CoinGecko trending endpoint', { cause: err });
     }
