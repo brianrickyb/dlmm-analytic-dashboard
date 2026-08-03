@@ -2,6 +2,13 @@
 -- Plain PostgreSQL (Supabase), tanpa TimescaleDB.
 -- Time-series ditangani dengan native RANGE partitioning + composite index.
 
+-- SECURITY NOTE: this schema targets the same Supabase project used by the
+-- auth module (frontend/src/lib/supabase.ts). The frontend's publishable key
+-- is safe to expose client-side ONLY as long as no table here is queried
+-- directly from the client without a Row Level Security policy. If any
+-- future code queries these tables from the frontend via supabase-js (rather
+-- than through the backend), add RLS policies first.
+
 -- =========================================================
 -- tokens: metadata token dinormalisasi (dipakai ulang lintas pool,
 -- mis. USDC muncul di puluhan pool — hindari duplikasi symbol/decimals)

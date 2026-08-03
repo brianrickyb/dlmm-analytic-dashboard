@@ -25,15 +25,26 @@ export function AccountPage() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
       .then(async (response) => {
-        const body = await response.json();
-        if (!response.ok) {
-          throw new Error(typeof body?.error === 'string' ? body.error : 'Failed to load account.');
+        if (response.status === 401) {
+          await signOut();
+          if (!cancelled) navigate('/login');
+          return;
         }
-        return body as { email: string };
-      })
-      .then((body) => {
+
+        let body: unknown;
+        try {
+          body = await response.json();
+        } catch {
+          throw new Error('Failed to load account.');
+        }
+
+        if (!response.ok) {
+          const message = typeof (body as { error?: unknown })?.error === 'string' ? (body as { error: string }).error : 'Failed to load account.';
+          throw new Error(message);
+        }
+
         if (cancelled) return;
-        setEmail(body.email);
+        setEmail((body as { email: string }).email);
         setStatus('ready');
       })
       .catch((err: unknown) => {
@@ -45,7 +56,7 @@ export function AccountPage() {
     return () => {
       cancelled = true;
     };
-  }, [session, loading, navigate]);
+  }, [session, loading, navigate, signOut]);
 
   async function handleLogout() {
     await signOut();
