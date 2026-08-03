@@ -37,10 +37,12 @@ server-side) — without yet building anything payment/subscription-related.
 
 The user must create a Supabase project themselves (this cannot be provisioned by an
 agent) and obtain three values:
-- `SUPABASE_URL` and `SUPABASE_ANON_KEY` — safe to expose in frontend code, designed
+- `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (Supabase's current naming for what
+  used to be called the `anon` key) — safe to expose in frontend code, designed
   to be public, meaningless without Row Level Security policies on top of them (moot
   here since no custom tables exist yet).
-- `SUPABASE_SERVICE_ROLE_KEY` — a high-privilege key that bypasses all data protection.
+- `SUPABASE_SECRET_KEY` (Supabase's current naming for what used to be called the
+  `service_role` key) — a high-privilege key that bypasses all data protection.
   **Backend-only, in `backend/.env`, never sent to the frontend, never committed.**
 
 ## Architecture
@@ -68,7 +70,7 @@ agent) and obtain three values:
 
 **Frontend** (`frontend/src/`)
 - `lib/supabase.ts` — the Supabase client singleton, built from
-  `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`.
+  `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY`.
 - `lib/auth/AuthContext.tsx` — a React context/provider wrapping the app, exposing the
   current session/user and `signUp`/`signIn`/`signOut`, backed by
   `supabase.auth.onAuthStateChange`.
@@ -82,7 +84,7 @@ agent) and obtain three values:
 
 **Backend** (`backend/src/`)
 - `lib/supabaseAdmin.ts` — the Supabase admin client, built from `SUPABASE_URL` /
-  `SUPABASE_SERVICE_ROLE_KEY`.
+  `SUPABASE_SECRET_KEY`.
 - `middleware/requireAuth.ts` — the Fastify hook: extracts the Bearer token, calls
   `supabaseAdmin.auth.getUser(token)`, attaches `request.user` or replies 401.
   Dependency-injectable (accepts a `getUser`-like function) so tests never call the
@@ -127,11 +129,11 @@ agent) and obtain three values:
 
 ## Security notes (binding constraints for the implementation plan)
 
-- `SUPABASE_SERVICE_ROLE_KEY` must never reach frontend code or version control —
+- `SUPABASE_SECRET_KEY` must never reach frontend code or version control —
   backend-only, `.env`-only, exactly like every other secret in this project so far.
-- `SUPABASE_ANON_KEY` is safe client-side by design; its safety currently depends on
-  no custom tables existing yet (true for this module) — any future table needs Row
-  Level Security policies before the anon key can be trusted against it.
+- `SUPABASE_PUBLISHABLE_KEY` is safe client-side by design; its safety currently depends
+  on no custom tables existing yet (true for this module) — any future table needs Row
+  Level Security policies before the publishable key can be trusted against it.
 - CORS remains `origin: true` (unchanged) — deliberate, not an oversight. This project
   uses a Bearer token, not a cookie, for authenticated requests, so the classic
   cookie-based CSRF risk that open CORS would otherwise create doesn't apply here
