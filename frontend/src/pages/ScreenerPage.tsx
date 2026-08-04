@@ -58,6 +58,11 @@ export function ScreenerPage() {
       <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
         Screener
       </h1>
+      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+        Two independent signals: current futures market positioning on major pairs, and coins
+        seeing a spike in search interest. Neither panel is investment advice — see the FAQ for
+        how to read each term.
+      </p>
 
       <div className="space-y-2">
         <h2 className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
