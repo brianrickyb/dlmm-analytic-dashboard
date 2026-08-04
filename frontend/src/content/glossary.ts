@@ -36,9 +36,9 @@ export const glossary: GlossaryEntry[] = [
   {
     key: 'solana',
     term: 'Solana',
-    shortDefinition: 'A fast, low-fee layer-1 blockchain — this dashboard is Solana-focused.',
+    shortDefinition: 'A fast, low-fee blockchain that apps like Meteora are built on — this dashboard is Solana-focused.',
     longDefinition:
-      "Solana is a layer-1 blockchain known for fast, cheap transactions. This dashboard focuses on the Solana ecosystem — Meteora's DLMM pools live here.",
+      "Solana is a base blockchain (other apps build on top of it) known for fast, cheap transactions. This dashboard focuses on the Solana ecosystem — Meteora's DLMM pools live here.",
     category: 'web3-basics',
   },
   {
@@ -83,7 +83,7 @@ export const glossary: GlossaryEntry[] = [
   {
     key: 'feeApr',
     term: 'Fee APR',
-    shortDefinition: 'An estimate of the annualized return from swap fees.',
+    shortDefinition: 'Annualized return from swap fees, projected from just the last 24 hours.',
     longDefinition: 'Fee APR is an estimate of the annualized return LPs earn from swap fees, projected from the last 24 hours of fees.',
     category: 'dlmm',
   },

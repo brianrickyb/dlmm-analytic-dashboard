@@ -1,6 +1,10 @@
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { glossary } from '../content/glossary';
+
+const POPOVER_WIDTH = 224; // px, matches w-56
+const POPOVER_HEIGHT = 80; // px, approx height budget used to decide whether to flip below
+const VIEWPORT_MARGIN = 8;
 
 interface TooltipProps {
   termKey: string;
@@ -9,10 +13,23 @@ interface TooltipProps {
 
 export function Tooltip({ termKey, children }: TooltipProps) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const [placement, setPlacement] = useState({ top: 0, left: 0, flip: false });
   const triggerRef = useRef<HTMLSpanElement>(null);
   const id = useId();
   const entry = glossary.find((e) => e.key === termKey);
+
+  useEffect(() => {
+    if (!open) return;
+    function close() {
+      setOpen(false);
+    }
+    window.addEventListener('scroll', close, { capture: true });
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, { capture: true });
+      window.removeEventListener('resize', close);
+    };
+  }, [open]);
 
   if (!entry) {
     return <>{children}</>;
@@ -21,7 +38,13 @@ export function Tooltip({ termKey, children }: TooltipProps) {
   function show() {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (rect) {
-      setCoords({ top: rect.top, left: rect.left + rect.width / 2 });
+      const half = POPOVER_WIDTH / 2;
+      const left = Math.min(
+        Math.max(rect.left + rect.width / 2, half + VIEWPORT_MARGIN),
+        window.innerWidth - half - VIEWPORT_MARGIN,
+      );
+      const flip = rect.top < POPOVER_HEIGHT + VIEWPORT_MARGIN;
+      setPlacement({ top: flip ? rect.bottom : rect.top, left, flip });
     }
     setOpen(true);
   }
@@ -31,19 +54,20 @@ export function Tooltip({ termKey, children }: TooltipProps) {
   }
 
   return (
-    <span className="relative inline-block">
+    <span className="inline-block">
       <span
         ref={triggerRef}
         className="cursor-help border-b border-dotted"
         style={{ borderColor: 'var(--text-muted)' }}
         tabIndex={0}
-        role="button"
-        aria-describedby={id}
+        aria-describedby={open ? id : undefined}
         onMouseEnter={show}
         onMouseLeave={hide}
         onFocus={show}
         onBlur={hide}
-        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') hide();
+        }}
       >
         {children}
       </span>
@@ -52,10 +76,12 @@ export function Tooltip({ termKey, children }: TooltipProps) {
             <span
               id={id}
               role="tooltip"
-              className="fixed z-50 -translate-x-1/2 -translate-y-full w-56 rounded border p-2 text-left text-xs font-normal normal-case shadow-sm"
+              className={`fixed z-50 w-56 -translate-x-1/2 rounded border p-2 text-left text-xs font-normal normal-case shadow-sm ${
+                placement.flip ? '' : '-translate-y-full'
+              }`}
               style={{
-                top: coords.top - 8,
-                left: coords.left,
+                top: placement.flip ? placement.top + 8 : placement.top - 8,
+                left: placement.left,
                 borderColor: 'var(--border)',
                 background: 'var(--surface-1)',
                 color: 'var(--text-secondary)',
