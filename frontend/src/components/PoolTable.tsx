@@ -2,13 +2,14 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PoolWithStats } from '../types/pool';
 import { formatPercent, formatUsdCompact } from '../lib/format';
+import { Tooltip } from './Tooltip';
 
 type SortKey = 'tvlUsd' | 'volume24hUsd' | 'feeApr24h';
 
-const columns: { key: SortKey; label: string }[] = [
-  { key: 'tvlUsd', label: 'TVL' },
+const columns: { key: SortKey; label: string; termKey?: string }[] = [
+  { key: 'tvlUsd', label: 'TVL', termKey: 'tvl' },
   { key: 'volume24hUsd', label: 'Volume (24h)' },
-  { key: 'feeApr24h', label: 'Fee APR (est.)' },
+  { key: 'feeApr24h', label: 'Fee APR (est.)', termKey: 'feeApr' },
 ];
 
 export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
@@ -49,7 +50,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
                 style={{ color: 'var(--text-muted)' }}
                 onClick={() => toggleSort(col.key)}
               >
-                {col.label}
+                {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
                 {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
               </th>
             ))}
@@ -68,7 +69,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
                   {pool.name}
                 </div>
                 <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  bin step {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
+                  <Tooltip termKey="binStep">bin step</Tooltip> {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
                 </div>
               </td>
               <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
