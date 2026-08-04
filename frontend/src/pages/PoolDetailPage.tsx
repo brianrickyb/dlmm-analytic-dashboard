@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { HistoryChart } from '../components/HistoryChart';
 import { IlCalculator } from '../components/IlCalculator';
 import { StatTile } from '../components/StatTile';
+import { Tooltip } from '../components/Tooltip';
 import { pools } from '../mock/pools';
 import { getLatestStats, getSnapshots } from '../mock/snapshots';
 import { formatPercent, formatPrice, formatUsd, formatUsdCompact } from '../lib/format';
@@ -34,15 +35,20 @@ export function PoolDetailPage() {
           {pool.name}
         </h1>
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          bin step {pool.binStep} · base fee {(pool.baseFeeBps / 100).toFixed(2)}% · current price {formatPrice(stats.currentPrice)}
+          <Tooltip termKey="binStep">bin step</Tooltip> {pool.binStep} · base fee {(pool.baseFeeBps / 100).toFixed(2)}% · current
+          price {formatPrice(stats.currentPrice)}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatTile label="TVL" value={formatUsdCompact(stats.tvlUsd)} />
+        <StatTile label={<Tooltip termKey="tvl">TVL</Tooltip>} value={formatUsdCompact(stats.tvlUsd)} />
         <StatTile label="Volume (24h)" value={formatUsdCompact(stats.volume24hUsd)} />
         <StatTile label="Fees (24h)" value={formatUsd(stats.fees24hUsd)} />
-        <StatTile label="Fee APR (est.)" value={formatPercent(stats.feeApr24h)} accent="var(--series-green)" />
+        <StatTile
+          label={<Tooltip termKey="feeApr">Fee APR (est.)</Tooltip>}
+          value={formatPercent(stats.feeApr24h)}
+          accent="var(--series-green)"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

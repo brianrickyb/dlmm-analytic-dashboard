@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { PoolSnapshot, Strategy } from '../types/pool';
 import { calculateNetYield } from '../lib/yield';
 import { formatPercent, formatPrice, formatUsd } from '../lib/format';
+import { Tooltip } from './Tooltip';
 
 const STRATEGY_DEFAULT_WIDTH_PCT: Record<Strategy, number> = {
   Spot: 10,
@@ -56,7 +57,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
         </label>
 
         <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-          Strategy
+          <Tooltip termKey="strategy">Strategy</Tooltip>
           <select
             value={strategy}
             onChange={(e) => handleStrategyChange(e.target.value as Strategy)}
@@ -108,12 +109,12 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
         <Result label="Days in range" value={`${result.daysInRange} / ${result.daysHeld}`} />
         <Result label="Fees earned" value={formatUsd(result.feesEarnedUsd)} accent="var(--series-green)" />
         <Result
-          label="Impermanent loss"
+          label={<Tooltip termKey="impermanentLoss">Impermanent loss</Tooltip>}
           value={`${formatUsd(result.impermanentLossUsd)} (${formatPercent(result.impermanentLossPct)})`}
           accent="var(--series-red)"
         />
         <Result
-          label="Net yield"
+          label={<Tooltip termKey="netYield">Net yield</Tooltip>}
           value={`${formatUsd(result.netYieldUsd)} (${formatPercent(result.netYieldPct)})`}
           accent={result.netYieldUsd >= 0 ? 'var(--status-good)' : 'var(--status-critical)'}
         />
@@ -122,7 +123,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
   );
 }
 
-function Result({ label, value, accent }: { label: string; value: string; accent?: string }) {
+function Result({ label, value, accent }: { label: ReactNode; value: string; accent?: string }) {
   return (
     <div>
       <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
