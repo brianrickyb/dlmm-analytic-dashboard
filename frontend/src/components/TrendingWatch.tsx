@@ -1,5 +1,6 @@
 import type { TrendingCoin } from '../types/screener';
 import { formatPercent } from '../lib/format';
+import { Tooltip } from './Tooltip';
 
 interface TrendingWatchProps {
   status: 'loading' | 'error' | 'ready';
@@ -54,7 +55,7 @@ export function TrendingWatch({ status, coins, errorMessage, onRetry }: Trending
               </span>{' '}
               <span style={{ color: 'var(--text-muted)' }}>{coin.symbol}</span>
               <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {coin.marketCapRank !== null ? `rank #${coin.marketCapRank}` : 'unranked'}
+                {coin.marketCapRank !== null ? <Tooltip termKey="marketCapRank">rank #{coin.marketCapRank}</Tooltip> : 'unranked'}
               </span>
             </div>
             <span

@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import type { PairPositioning } from '../types/screener';
 import { formatPercent } from '../lib/format';
+import { Tooltip } from './Tooltip';
 
 type SortKey = 'buyRatio' | 'fundingRate' | 'price24hPct';
 
-const columns: { key: SortKey; label: string }[] = [
-  { key: 'buyRatio', label: 'Long/Short Ratio' },
-  { key: 'fundingRate', label: 'Funding Rate' },
+const columns: { key: SortKey; label: string; termKey?: string }[] = [
+  { key: 'buyRatio', label: 'Long/Short Ratio', termKey: 'longShortRatio' },
+  { key: 'fundingRate', label: 'Funding Rate', termKey: 'fundingRate' },
   { key: 'price24hPct', label: '24h Change' },
 ];
 
@@ -53,7 +54,7 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
                 style={{ color: 'var(--text-muted)' }}
                 onClick={() => toggleSort(col.key)}
               >
-                {col.label}
+                {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
                 {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
               </th>
             ))}
