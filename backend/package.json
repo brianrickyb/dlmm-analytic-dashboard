@@ -3,14 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.9.0"
+  },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node --env-file-if-exists=.env dist/server.js",
     "test": "vitest run"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
+    "@supabase/supabase-js": "^2.111.0",
     "fastify": "^5.0.0",
     "rss-parser": "^3.13.0"
   },

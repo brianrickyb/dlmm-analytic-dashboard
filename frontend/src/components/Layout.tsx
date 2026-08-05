@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { useAuth } from '../lib/auth/AuthContext';
 
 export function Layout({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
+
   return (
     <div className="min-h-screen">
       <header className="border-b" style={{ borderColor: 'var(--border)' }}>
@@ -27,6 +30,15 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/faq" style={{ color: 'var(--text-secondary)' }}>
               FAQ
             </Link>
+            {session ? (
+              <Link to="/account" style={{ color: 'var(--text-secondary)' }}>
+                {session.user.email}
+              </Link>
+            ) : (
+              <Link to="/login" style={{ color: 'var(--text-secondary)' }}>
+                Login
+              </Link>
+            )}
           </nav>
         </div>
       </header>

@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { registerNewsRoutes } from './routes/news.js';
 import { registerScreenerRoutes } from './routes/screener.js';
+import { registerAccountRoutes } from './routes/account.js';
 
 export function buildServer() {
   const app = Fastify({ logger: true });
@@ -11,6 +12,7 @@ export function buildServer() {
   app.get('/health', async () => ({ status: 'ok' }));
   registerNewsRoutes(app);
   registerScreenerRoutes(app);
+  registerAccountRoutes(app);
 
   return app;
 }
