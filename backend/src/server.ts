@@ -3,6 +3,8 @@ import cors from '@fastify/cors';
 import { registerNewsRoutes } from './routes/news.js';
 import { registerScreenerRoutes } from './routes/screener.js';
 import { registerAccountRoutes } from './routes/account.js';
+import { registerPremiumRoutes } from './routes/premium.js';
+import { registerStripeWebhookRoutes } from './routes/stripeWebhook.js';
 
 export function buildServer() {
   const app = Fastify({ logger: true });
@@ -13,6 +15,8 @@ export function buildServer() {
   registerNewsRoutes(app);
   registerScreenerRoutes(app);
   registerAccountRoutes(app);
+  registerPremiumRoutes(app);
+  registerStripeWebhookRoutes(app);
 
   return app;
 }
