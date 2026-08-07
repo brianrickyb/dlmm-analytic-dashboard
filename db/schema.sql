@@ -95,3 +95,27 @@ CREATE TABLE pool_latest_stats (
 CREATE INDEX idx_pool_latest_tvl    ON pool_latest_stats (tvl_usd DESC);
 CREATE INDEX idx_pool_latest_volume ON pool_latest_stats (volume_24h_usd DESC);
 CREATE INDEX idx_pool_latest_apr    ON pool_latest_stats (fee_apr_24h DESC);
+
+-- =========================================================
+-- subscriptions: Stripe subscription state per user, one row per user
+-- (single premium plan). Upserted on checkout.session.completed, kept in
+-- sync by customer.subscription.updated/.deleted and invoice.paid.
+-- RLS enabled with NO policies for anon/authenticated: this table is only
+-- ever read/written by the backend via the Supabase service-role client,
+-- which bypasses RLS by design. The default-deny posture is defense-in-
+-- depth, not the actual access path (same reasoning as the SECURITY NOTE
+-- at the top of this file).
+-- =========================================================
+CREATE TABLE subscriptions (
+  user_id                 UUID PRIMARY KEY REFERENCES auth.users(id),
+  stripe_customer_id      TEXT NOT NULL,
+  stripe_subscription_id  TEXT NOT NULL UNIQUE,
+  status                  TEXT NOT NULL, -- 'active' | 'past_due' | 'canceled'
+  current_period_end      TIMESTAMPTZ,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX idx_subscriptions_stripe_customer ON subscriptions (stripe_customer_id);
