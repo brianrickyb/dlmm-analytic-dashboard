@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { PositioningTable } from '../components/PositioningTable';
 import { TrendingWatch } from '../components/TrendingWatch';
 import { fetchMajors, fetchTrending } from '../lib/api/screener';
+import { useAuth } from '../lib/auth/AuthContext';
 import type { MajorsResponse, TrendingCoin } from '../types/screener';
 
 export function ScreenerPage() {
+  const { isPremium } = useAuth();
   const [majorsStatus, setMajorsStatus] = useState<'loading' | 'error' | 'ready'>('loading');
   const [majors, setMajors] = useState<MajorsResponse | null>(null);
   const [majorsError, setMajorsError] = useState<string | undefined>(undefined);
@@ -83,7 +85,12 @@ export function ScreenerPage() {
             </button>
           </div>
         ) : (
-          <PositioningTable pairs={majors!.pairs} topLongSymbols={majors!.topLongSymbols} topShortSymbols={majors!.topShortSymbols} />
+          <PositioningTable
+            pairs={majors!.pairs}
+            topLongSymbols={majors!.topLongSymbols}
+            topShortSymbols={majors!.topShortSymbols}
+            isPremium={isPremium}
+          />
         )}
       </div>
 

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { PairPositioning } from '../types/screener';
 import { formatPercent } from '../lib/format';
 import { Tooltip } from './Tooltip';
@@ -11,13 +12,17 @@ const columns: { key: SortKey; label: string; termKey?: string }[] = [
   { key: 'price24hPct', label: '24h Change' },
 ];
 
+// One side at least double the other — the premium "2:1 signal" threshold.
+const SIGNAL_THRESHOLD = 2 / 3;
+
 interface PositioningTableProps {
   pairs: PairPositioning[];
   topLongSymbols: string[];
   topShortSymbols: string[];
+  isPremium: boolean;
 }
 
-export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: PositioningTableProps) {
+export function PositioningTable({ pairs, topLongSymbols, topShortSymbols, isPremium }: PositioningTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('buyRatio');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
@@ -64,6 +69,8 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
           {sorted.map((pair) => {
             const isTopLong = topLongSymbols.includes(pair.symbol);
             const isTopShort = topShortSymbols.includes(pair.symbol);
+            const hasSignal = pair.buyRatio >= SIGNAL_THRESHOLD || pair.sellRatio >= SIGNAL_THRESHOLD;
+            const signalDirection = pair.buyRatio >= pair.sellRatio ? 'LONG' : 'SHORT';
             return (
               <tr key={pair.symbol} style={{ borderBottom: '1px solid var(--gridline)' }}>
                 <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -81,6 +88,19 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
                   {(pair.buyRatio * 100).toFixed(1)}% / {(pair.sellRatio * 100).toFixed(1)}%
+                  {hasSignal && isPremium ? (
+                    <span
+                      className="ml-2 rounded px-1.5 py-0.5 text-xs font-semibold"
+                      style={{ background: 'color-mix(in srgb, #4f46e5 12%, transparent)', color: '#4f46e5' }}
+                    >
+                      ⚡ 2:1 {signalDirection}
+                    </span>
+                  ) : null}
+                  {hasSignal && !isPremium ? (
+                    <Link to="/upgrade" className="ml-2 text-xs underline" style={{ color: 'var(--text-muted)' }}>
+                      Upgrade to see signal
+                    </Link>
+                  ) : null}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
                   {formatPercent(pair.fundingRate * 100, 4)}
