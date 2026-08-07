@@ -9,6 +9,7 @@ import { FaqPage } from './pages/FaqPage';
 import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
 import { AccountPage } from './pages/AccountPage';
+import { UpgradePage } from './pages/UpgradePage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/upgrade" element={<UpgradePage />} />
         </Routes>
       </Layout>
     </AuthProvider>

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth/AuthContext';
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { session, isPremium } = useAuth();
 
   return (
     <div className="min-h-screen">
@@ -29,6 +29,9 @@ export function Layout({ children }: { children: ReactNode }) {
             </Link>
             <Link to="/faq" style={{ color: 'var(--text-secondary)' }}>
               FAQ
+            </Link>
+            <Link to="/upgrade" style={{ color: 'var(--text-secondary)' }}>
+              {isPremium ? '⭐ Upgrade' : 'Upgrade'}
             </Link>
             {session ? (
               <Link to="/account" style={{ color: 'var(--text-secondary)' }}>
