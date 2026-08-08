@@ -81,7 +81,12 @@ async function defaultBuildTx(input: BuildTxRequest) {
 export function registerLiquidityRoutes(app: FastifyInstance, deps: { buildTx?: BuildTxFn } = {}): void {
   const buildTx = deps.buildTx ?? defaultBuildTx;
 
-  app.post('/api/liquidity/build-tx', async (request, reply) => {
+  // Each call does real RPC + SDK work (account fetches, a transaction
+  // simulation for compute-unit estimation, a blockhash fetch) — bounded
+  // per-IP so an anonymous caller can't turn this into a devnet RPC bill.
+  const routeOptions = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } };
+
+  app.post('/api/liquidity/build-tx', routeOptions, async (request, reply) => {
     const parsed = parseBuildTxRequest(request.body);
     if (!parsed.success) {
       reply.code(400);

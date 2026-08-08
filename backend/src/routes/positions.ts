@@ -49,7 +49,13 @@ async function defaultFetchPositions(wallet: string): Promise<OnChainPosition[]>
 export function registerPositionsRoutes(app: FastifyInstance, deps: { fetchPositions?: FetchPositionsFn } = {}): void {
   const fetchPositions = deps.fetchPositions ?? defaultFetchPositions;
 
-  app.get('/api/positions', async (request, reply) => {
+  // GET /api/positions triggers a chunked getProgramAccounts scan against the
+  // DLMM program (one of the most expensive calls an RPC serves) for any
+  // caller-supplied wallet address, with no cache — bounded per-IP so an
+  // anonymous caller can't turn this into a devnet RPC bill.
+  const routeOptions = { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } };
+
+  app.get('/api/positions', routeOptions, async (request, reply) => {
     const { wallet } = request.query as { wallet?: string };
     if (!isValidPubkey(wallet)) {
       reply.code(400);
