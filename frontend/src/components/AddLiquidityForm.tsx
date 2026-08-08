@@ -96,8 +96,8 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
   const busy = state === 'building' || state === 'awaiting-signature' || state === 'submitting' || state === 'confirming';
 
   return (
-    <div className="space-y-3 rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+    <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
         Add Liquidity (devnet)
       </h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
@@ -153,8 +153,8 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
         <button
           type="submit"
           disabled={busy}
-          className="col-span-2 rounded border px-3 py-1.5 text-sm font-medium"
-          style={{ borderColor: 'var(--border)', background: 'var(--series-blue)', color: '#ffffff' }}
+          className="col-span-2 rounded-full px-3 py-1.5 text-sm font-bold"
+          style={{ background: 'var(--accent)', color: '#052e1f' }}
         >
           {busy ? `${state}...` : 'Add Liquidity'}
         </button>
@@ -169,8 +169,8 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
             type="button"
             onClick={runFlow}
             disabled={busy}
-            className="rounded border px-3 py-1.5 text-xs font-medium"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+            className="rounded-full px-3 py-1.5 text-xs font-bold"
+            style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
           >
             {busy ? `${state}...` : 'Retry'}
           </button>
@@ -180,12 +180,7 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
       {state === 'success' && signature ? (
         <p className="text-xs" style={{ color: 'var(--status-good)' }}>
           Confirmed —{' '}
-          <a
-            href={`https://solscan.io/tx/${signature}?cluster=devnet`}
-            target="_blank"
-            rel="noreferrer"
-            style={{ color: 'var(--series-blue)' }}
-          >
+          <a href={`https://solscan.io/tx/${signature}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>
             view on Solscan
           </a>
         </p>

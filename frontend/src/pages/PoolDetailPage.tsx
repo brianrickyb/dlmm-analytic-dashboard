@@ -18,7 +18,7 @@ export function PoolDetailPage() {
     return (
       <div>
         <p style={{ color: 'var(--text-primary)' }}>Pool not found.</p>
-        <Link to="/" style={{ color: 'var(--series-blue)' }}>
+        <Link to="/" style={{ color: 'var(--accent)' }}>
           Back to pool list
         </Link>
       </div>
@@ -31,10 +31,10 @@ export function PoolDetailPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/" className="text-xs" style={{ color: 'var(--series-blue)' }}>
+        <Link to="/" className="text-xs" style={{ color: 'var(--accent)' }}>
           ← Back to pool list
         </Link>
-        <h1 className="mt-1 text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="mt-1 text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
           {pool.name}
         </h1>
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>

@@ -38,8 +38,8 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
   }
 
   return (
-    <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <div className="mb-4 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="mb-4 text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
         Impermanent loss & net yield calculator (hypothetical)
       </div>
 
@@ -129,7 +129,7 @@ function Result({ label, value, accent }: { label: ReactNode; value: string; acc
       <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
         {label}
       </div>
-      <div className="mt-0.5 text-sm font-semibold tabular-nums" style={{ color: accent ?? 'var(--text-primary)' }}>
+      <div className="mt-0.5 text-sm font-bold tabular-nums" style={{ color: accent ?? 'var(--text-primary)' }}>
         {value}
       </div>
     </div>

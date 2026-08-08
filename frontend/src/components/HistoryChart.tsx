@@ -15,7 +15,7 @@ function CustomTooltip({ active, payload, label, valueFormatter }: any) {
   const value = payload[0].value as number;
   return (
     <div
-      className="rounded-md border px-3 py-2 text-xs shadow-sm"
+      className="rounded-lg border px-3 py-2 text-xs shadow-sm"
       style={{ background: 'var(--surface-1)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
     >
       <div style={{ color: 'var(--text-muted)' }}>{formatDate(label)}</div>
@@ -26,8 +26,8 @@ function CustomTooltip({ active, payload, label, valueFormatter }: any) {
 
 export function HistoryChart({ data, dataKey, label, color, valueFormatter }: HistoryChartProps) {
   return (
-    <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <div className="mb-2 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
         {label}
       </div>
       <ResponsiveContainer width="100%" height={200}>
