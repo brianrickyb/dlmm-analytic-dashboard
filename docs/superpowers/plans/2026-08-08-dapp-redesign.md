@@ -263,7 +263,7 @@ const NAV_LINKS = [
   { to: '/positions', label: 'My Positions' },
 ];
 
-function HeaderLink({ to, label }: { to: string; label: string }) {
+function HeaderLink({ to, label }: { to: string; label: ReactNode }) {
   const location = useLocation();
   const active = location.pathname === to;
   return (
