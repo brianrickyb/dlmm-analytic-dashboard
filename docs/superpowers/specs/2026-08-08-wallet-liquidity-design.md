@@ -1,5 +1,19 @@
 # Wallet Connect + On-Chain Add Liquidity — Design
 
+## Post-implementation update (2026-08-08)
+
+After the plan below was implemented and verified end-to-end on real devnet (real pool
+created via the Meteora SDK, real Phantom wallet, real confirmed transactions), the
+`positions` Supabase table described throughout this spec was **removed**. It added no
+value beyond what `@meteora-ag/dlmm`'s `getAllLbPairPositionsByUser()` already answers
+directly from on-chain state — the DLMM program is the actual source of truth for "what
+positions does this wallet hold," and the table was purely a cache with nothing in it
+that isn't already recoverable from-chain. `GET /api/positions` now queries on-chain
+directly; `POST /api/positions` and the independent on-chain-verification-before-write
+step tied to it are gone, since there's no longer a write to protect. Every other
+mention of `positions` (as a Supabase table) below reflects the original design, not
+the shipped implementation — kept for historical context rather than rewritten in place.
+
 ## Context
 
 Every module so far in this project is either mock data (`frontend/src/mock/pools.ts`,
