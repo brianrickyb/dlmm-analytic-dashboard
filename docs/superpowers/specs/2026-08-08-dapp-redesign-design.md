@@ -98,23 +98,28 @@ highlight in the mockup is illustrative, not a functional requirement — no new
 logic is being added, this is purely about confirming the row-card pattern reads correctly.
 
 **Screener (`ScreenerPage.tsx`, `PositioningTable.tsx`, `TrendingWatch.tsx`):** row-card
-pattern for the positioning table; "Long-leaning"/"Short-leaning" and the existing premium
-"⚡ 2:1" signal (from `feat/stripe-payment`, currently paused/unmerged — this redesign
-still updates that component's markup now so it's ready whenever that branch lands) become
-badges per the shared pattern. Trending/Narrative Watch becomes a wrapped row of small
-pill cards (symbol, rank, 24h change) instead of the current plain list.
+pattern for the positioning table; the existing "Long-leaning"/"Short-leaning" plain-text
+labels become badges per the shared pattern. (The premium "⚡ 2:1" signal shown in the
+Screener mockup only exists in code on the separate, unmerged `feat/stripe-payment`
+branch — this branch's `PositioningTable.tsx` has no `isPremium`/signal logic to restyle.
+The mockup's badge visual is still the reference for whenever that branch is revived; see
+Out of scope.) Trending/Narrative Watch becomes a wrapped row of small pill cards (symbol,
+rank, 24h change) instead of the current plain list.
 
 **Pool Detail (`PoolDetailPage.tsx`, `StatTile.tsx`, `IlCalculator.tsx`,
 `AddLiquidityForm.tsx`):** stat tiles and the IL calculator's result cells adopt the new
 card radius/tokens; no layout restructuring. `AddLiquidityForm` (from
 `feat/wallet-liquidity`) keeps its current field layout, restyled to match.
 
-**Upgrade (`UpgradePage.tsx`):** **replaces** its current standalone "Clean Modern SaaS"
-treatment (white background, indigo `#4f46e5` accent — a deliberate one-off style from the
-Stripe module, chosen before this dashboard-wide direction existed) with the same
-dark/emerald language as everywhere else, validated via a dedicated mockup for both the
-not-subscribed and subscribed states. This is the one page with an existing *different*
-"modern" style being explicitly unified, not just extended.
+**Upgrade — not part of this implementation, mockup kept as future reference.**
+`UpgradePage.tsx` doesn't exist on this branch at all — it was built on the separate,
+unmerged `feat/stripe-payment` branch (currently paused; the payment provider is being
+switched away from Stripe entirely, see project memory) and was never merged to master or
+any ancestor of this branch. The dedicated Upgrade-page mockup validated during
+brainstorming (dark/emerald, replacing that branch's original white/indigo "Clean Modern
+SaaS" one-off style) is real and should be the reference whenever the payment module is
+rebuilt — but there is no file for this spec's plan to touch today. Treat it the same as
+the Screener's 2:1 signal below: direction validated, implementation deferred.
 
 **News, FAQ, Auth (Login/Signup/Account), My Positions (`MyPositionsPage.tsx`):** no
 dedicated mockups were made for these — they're simpler list/form pages that reuse the same
@@ -142,17 +147,20 @@ the mockups' nav treatment.
   responsive behavior is kept; this pass targets desktop-width layouts matching the
   mockups, consistent with how every prior module in this project has been built and
   verified (Playwright screenshots at a fixed desktop viewport).
-- Reconciling this with the paused `feat/stripe-payment` branch — that branch is unmerged;
-  its `UpgradePage.tsx`/`PositioningTable.tsx` will need the same restyling applied
-  whenever it's revived, but merging/rebasing that branch is not part of this spec.
+- Reconciling this with the paused `feat/stripe-payment` branch, or touching anything that
+  only exists there — `UpgradePage.tsx` (doesn't exist on this branch) and the Screener's
+  premium "⚡ 2:1" signal markup (`PositioningTable.tsx`'s `isPremium` prop/badge, also not
+  present here). Both were validated visually via mockup and that direction is the
+  reference for whenever the payment module is rebuilt (with a different provider — see
+  project memory), but neither is implemented by this spec's plan.
 
 ## Testing
 
 Consistent with this project's established convention: no new automated component tests
 (this project has never had them; only pure-logic files like `il.ts`/`yield.ts` do).
 Verified manually via Playwright screenshots, covering **both light and dark mode**, for
-every page: Pools (list + detail), Screener, News, FAQ, Login/Signup/Account, Upgrade
-(both subscribed states so far as they can be reached without a live Stripe account), and
-My Positions — checking each renders with the new tokens, zero console errors, and that
-sorting/filtering/expand-collapse interactions (already-existing functionality) still work
-after the markup restructuring.
+every page that actually exists on this branch: Pools (list + detail), Screener, News, FAQ,
+Login/Signup/Account, and My Positions — checking each renders with the new tokens, zero
+console errors, and that sorting/filtering/expand-collapse interactions (already-existing
+functionality) still work after the markup restructuring. (Upgrade is excluded — see Out
+of scope.)
