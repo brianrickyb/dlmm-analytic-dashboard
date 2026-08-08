@@ -20,9 +20,9 @@ function timeAgo(iso: string): string {
 export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps) {
   if (status === 'loading') {
     return (
-      <div className="space-y-3">
+      <div className="space-y-1.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div key={i} className="h-16 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
         ))}
       </div>
     );
@@ -30,13 +30,13 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
 
   if (status === 'error') {
     return (
-      <div className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Failed to load news.'}</p>
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 rounded border px-3 py-1 text-xs font-medium"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+          className="mt-2 rounded-full px-3 py-1 text-xs font-bold"
+          style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
         >
           Retry
         </button>
@@ -46,17 +46,17 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
 
   if (posts.length === 0) {
     return (
-      <div className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-muted)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-muted)' }}>
         No news matches the current filter.
       </div>
     );
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-1.5">
       {posts.map((post) => (
-        <li key={post.id} className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-          <a href={post.url} target="_blank" rel="noreferrer" className="font-medium hover:underline" style={{ color: 'var(--text-primary)' }}>
+        <li key={post.id} className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+          <a href={post.url} target="_blank" rel="noreferrer" className="font-semibold hover:underline" style={{ color: 'var(--text-primary)' }}>
             {post.title}
           </a>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>

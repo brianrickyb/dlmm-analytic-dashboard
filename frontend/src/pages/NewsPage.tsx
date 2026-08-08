@@ -35,15 +35,15 @@ export function NewsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
         Crypto News
       </h1>
       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
         Live headlines aggregated from CoinDesk, Cointelegraph, The Block, and Decrypt. New to
         reading crypto news? See "How to read crypto news" below.
       </p>
-      <details className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <summary className="cursor-pointer font-medium" style={{ color: 'var(--text-primary)' }}>
+      <details className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+        <summary className="cursor-pointer font-semibold" style={{ color: 'var(--text-primary)' }}>
           How to read crypto news
         </summary>
         <div className="mt-3 space-y-2" style={{ color: 'var(--text-secondary)' }}>

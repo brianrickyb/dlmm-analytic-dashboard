@@ -34,11 +34,11 @@ export function NewsFilters({ currencies, onCurrenciesChange, source, onSourceCh
               key={s.label}
               type="button"
               onClick={() => onSourceChange(s.value)}
-              className="rounded-full border px-3 py-1 text-xs font-medium"
+              className="rounded-full border px-3 py-1 text-xs font-bold"
               style={{
-                borderColor: 'var(--border)',
-                background: active ? 'var(--series-blue)' : 'var(--surface-1)',
-                color: active ? '#ffffff' : 'var(--text-secondary)',
+                borderColor: active ? 'transparent' : 'var(--border)',
+                background: active ? 'var(--accent)' : 'var(--surface-1)',
+                color: active ? '#052e1f' : 'var(--text-secondary)',
               }}
             >
               {s.label}
