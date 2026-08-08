@@ -12,6 +12,8 @@ const columns: { key: SortKey; label: string; termKey?: string }[] = [
   { key: 'feeApr24h', label: 'Fee APR (est.)', termKey: 'feeApr' },
 ];
 
+const GRID_COLS = 'grid-cols-[2fr_1fr_1fr_1fr]';
+
 export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
   const [sortKey, setSortKey] = useState<SortKey>('tvlUsd');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -36,55 +38,55 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--gridline)' }}>
-            <th className="px-4 py-3 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
-              Pool
-            </th>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                className="cursor-pointer select-none px-4 py-3 text-right font-medium"
-                style={{ color: 'var(--text-muted)' }}
-                onClick={() => toggleSort(col.key)}
-              >
-                {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
-                {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((pool) => (
-            <tr
-              key={pool.id}
-              className="cursor-pointer hover:opacity-80"
-              style={{ borderBottom: '1px solid var(--gridline)' }}
-              onClick={() => navigate(`/pools/${pool.id}`)}
-            >
-              <td className="px-4 py-3">
-                <div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {pool.name}
-                </div>
-                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  <Tooltip termKey="binStep">bin step</Tooltip> {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
-                </div>
-              </td>
-              <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                {formatUsdCompact(pool.stats.tvlUsd)}
-              </td>
-              <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                {formatUsdCompact(pool.stats.volume24hUsd)}
-              </td>
-              <td className="px-4 py-3 text-right tabular-nums font-medium" style={{ color: 'var(--series-green)' }}>
-                {formatPercent(pool.stats.feeApr24h)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-1.5">
+      <div className={`grid ${GRID_COLS} gap-4 px-4`}>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+          Pool
+        </span>
+        {columns.map((col) => (
+          <button
+            key={col.key}
+            type="button"
+            onClick={() => toggleSort(col.key)}
+            className="text-right text-xs font-medium"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
+            {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+          </button>
+        ))}
+      </div>
+      {sorted.map((pool) => (
+        <div
+          key={pool.id}
+          role="button"
+          tabIndex={0}
+          onClick={() => navigate(`/pools/${pool.id}`)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') navigate(`/pools/${pool.id}`);
+          }}
+          className={`grid ${GRID_COLS} cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 hover:opacity-80`}
+          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+        >
+          <div>
+            <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {pool.name}
+            </div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <Tooltip termKey="binStep">bin step</Tooltip> {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
+            </div>
+          </div>
+          <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            {formatUsdCompact(pool.stats.tvlUsd)}
+          </div>
+          <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            {formatUsdCompact(pool.stats.volume24hUsd)}
+          </div>
+          <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--series-green)' }}>
+            {formatPercent(pool.stats.feeApr24h)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
