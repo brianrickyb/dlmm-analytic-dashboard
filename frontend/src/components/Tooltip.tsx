@@ -76,7 +76,7 @@ export function Tooltip({ termKey, children }: TooltipProps) {
             <span
               id={id}
               role="tooltip"
-              className={`fixed z-50 w-56 -translate-x-1/2 rounded border p-2 text-left text-xs font-normal normal-case shadow-sm ${
+              className={`fixed z-50 w-56 -translate-x-1/2 rounded-lg border p-2 text-left text-xs font-normal normal-case shadow-sm ${
                 placement.flip ? '' : '-translate-y-full'
               }`}
               style={{
