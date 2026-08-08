@@ -1,14 +1,17 @@
 import { Link, useParams } from 'react-router-dom';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { HistoryChart } from '../components/HistoryChart';
 import { IlCalculator } from '../components/IlCalculator';
 import { StatTile } from '../components/StatTile';
 import { Tooltip } from '../components/Tooltip';
+import { AddLiquidityForm } from '../components/AddLiquidityForm';
 import { pools } from '../mock/pools';
 import { getLatestStats, getSnapshots } from '../mock/snapshots';
 import { formatPercent, formatPrice, formatUsd, formatUsdCompact } from '../lib/format';
 
 export function PoolDetailPage() {
   const { poolId } = useParams<{ poolId: string }>();
+  const { connected } = useWallet();
   const pool = pools.find((p) => p.id === poolId);
 
   if (!pool) {
@@ -64,6 +67,14 @@ export function PoolDetailPage() {
       </div>
 
       <IlCalculator series={series} />
+
+      {connected ? (
+        <AddLiquidityForm poolAddress={pool.poolAddress} />
+      ) : (
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+          Connect a wallet to add liquidity to this pool.
+        </p>
+      )}
     </div>
   );
 }
