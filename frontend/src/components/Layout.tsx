@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth/AuthContext';
+import { WalletConnectButton } from './WalletConnectButton';
 
 export function Layout({ children }: { children: ReactNode }) {
   const { session } = useAuth();
@@ -30,6 +31,9 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/faq" style={{ color: 'var(--text-secondary)' }}>
               FAQ
             </Link>
+            <Link to="/positions" style={{ color: 'var(--text-secondary)' }}>
+              My Positions
+            </Link>
             {session ? (
               <Link to="/account" style={{ color: 'var(--text-secondary)' }}>
                 {session.user.email}
@@ -39,6 +43,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 Login
               </Link>
             )}
+            <WalletConnectButton />
           </nav>
         </div>
       </header>
