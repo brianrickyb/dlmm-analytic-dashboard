@@ -113,9 +113,9 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
         <input
           type="number"
           min="0"
-          step="any"
+          step="1"
           required
-          placeholder="Amount X"
+          placeholder="Amount X (base units)"
           value={amountX}
           onChange={(e) => setAmountX(e.target.value)}
           className="rounded border px-3 py-1.5 text-sm"
@@ -124,9 +124,9 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
         <input
           type="number"
           min="0"
-          step="any"
+          step="1"
           required
-          placeholder="Amount Y"
+          placeholder="Amount Y (base units)"
           value={amountY}
           onChange={(e) => setAmountY(e.target.value)}
           className="rounded border px-3 py-1.5 text-sm"

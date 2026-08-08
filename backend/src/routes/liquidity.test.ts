@@ -1,7 +1,21 @@
 import Fastify from 'fastify';
 import { describe, expect, it } from 'vitest';
-import { registerLiquidityRoutes } from './liquidity.js';
+import { registerLiquidityRoutes, toSdkSlippagePercent } from './liquidity.js';
 import { SolanaUnavailableError, PoolNotFoundError } from '../lib/dlmmError.js';
+
+describe('toSdkSlippagePercent', () => {
+  it('converts the API contract\'s "slippageBps=100 means 1%" into the percent the SDK expects', () => {
+    // Regression test: the SDK's `slippage` param is a percentage, not basis
+    // points. Passing 100 through unconverted (the bug this guards against)
+    // would tell the SDK "100%", disabling the active-bin drift guard.
+    expect(toSdkSlippagePercent(100)).toBe(1);
+  });
+
+  it('converts the minimum (1 bps) and maximum (2000 bps) allowed values', () => {
+    expect(toSdkSlippagePercent(1)).toBe(0.01);
+    expect(toSdkSlippagePercent(2000)).toBe(20);
+  });
+});
 
 const validBody = {
   poolAddress: '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1',

@@ -1,6 +1,6 @@
 export class SolanaUnavailableError extends Error {
-  constructor(message = 'Solana RPC is unavailable right now.') {
-    super(message);
+  constructor(message = 'Solana RPC is unavailable right now.', options?: ErrorOptions) {
+    super(message, options);
     this.name = 'SolanaUnavailableError';
   }
 }

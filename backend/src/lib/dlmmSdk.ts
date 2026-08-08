@@ -9,6 +9,13 @@ import type BN from 'bn.js';
 // works correctly at runtime; createRequire loads that build directly,
 // sidestepping both bugs. Minimal hand-written types below cover only the
 // surface this project actually calls.
+//
+// package.json pins this dependency to an EXACT version (no ^) on purpose:
+// the interfaces below are asserted (`as DlmmStatic`), not checked against
+// the package's own (broken) types, so a version bump can't be caught by the
+// compiler — only dlmmSdk.test.ts's smoke test and re-running the constant/
+// method-shape verification this file's history depended on. Upgrading is a
+// deliberate act, not an incidental `npm update`.
 const require = createRequire(import.meta.url);
 
 export enum StrategyType {

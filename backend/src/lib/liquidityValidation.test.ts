@@ -42,6 +42,26 @@ describe('parseBuildTxRequest', () => {
     expect(result.success).toBe(false);
   });
 
+  it('rejects a decimal amount (new BN() only accepts integer strings)', () => {
+    const result = parseBuildTxRequest(baseBody({ amountX: '1.5' }));
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects scientific notation', () => {
+    const result = parseBuildTxRequest(baseBody({ amountX: '1e21' }));
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a hex-prefixed amount', () => {
+    const result = parseBuildTxRequest(baseBody({ amountX: '0x1f' }));
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects an empty amount string', () => {
+    const result = parseBuildTxRequest(baseBody({ amountX: '', amountY: '0' }));
+    expect(result.success).toBe(false);
+  });
+
   it('rejects minBinId > maxBinId', () => {
     const result = parseBuildTxRequest(baseBody({ minBinId: 200, maxBinId: 100 }));
     expect(result.success).toBe(false);
@@ -59,6 +79,11 @@ describe('parseBuildTxRequest', () => {
 
   it('rejects a bin range one past the allowed span (27 bins)', () => {
     const result = parseBuildTxRequest(baseBody({ minBinId: 0, maxBinId: 26 }));
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a bin id beyond the SDK-real bounds', () => {
+    const result = parseBuildTxRequest(baseBody({ minBinId: -400000, maxBinId: -400000 + 10 }));
     expect(result.success).toBe(false);
   });
 

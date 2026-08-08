@@ -30,7 +30,12 @@ async function defaultFetchPositions(wallet: string): Promise<OnChainPosition[]>
   const DLMM = loadDlmmSdk();
 
   const userPubkey = new PublicKey(wallet);
-  const positionsByPool = await DLMM.getAllLbPairPositionsByUser(connection, userPubkey);
+  let positionsByPool: Awaited<ReturnType<typeof DLMM.getAllLbPairPositionsByUser>>;
+  try {
+    positionsByPool = await DLMM.getAllLbPairPositionsByUser(connection, userPubkey);
+  } catch (err) {
+    throw new SolanaUnavailableError('Failed to load positions from Solana.', { cause: err });
+  }
 
   const result: OnChainPosition[] = [];
   for (const [poolAddress, info] of positionsByPool) {
@@ -56,6 +61,7 @@ export function registerPositionsRoutes(app: FastifyInstance, deps: { fetchPosit
       return { positions };
     } catch (err) {
       if (err instanceof SolanaUnavailableError) {
+        request.log.error({ err: err.cause ?? err }, 'fetch positions failed');
         reply.code(503);
         return { error: err.message };
       }
