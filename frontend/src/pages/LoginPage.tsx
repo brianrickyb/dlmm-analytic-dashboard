@@ -25,7 +25,7 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto max-w-sm space-y-4">
-      <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
         Log in
       </h1>
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -55,15 +55,15 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded border px-3 py-1.5 text-sm font-medium"
-          style={{ borderColor: 'var(--border)', background: 'var(--series-blue)', color: '#ffffff' }}
+          className="w-full rounded-full px-3 py-1.5 text-sm font-bold"
+          style={{ background: 'var(--accent)', color: '#052e1f' }}
         >
           {submitting ? 'Logging in...' : 'Log in'}
         </button>
       </form>
       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
         Don't have an account?{' '}
-        <Link to="/signup" style={{ color: 'var(--series-blue)' }}>
+        <Link to="/signup" style={{ color: 'var(--accent)' }}>
           Sign up
         </Link>
       </p>

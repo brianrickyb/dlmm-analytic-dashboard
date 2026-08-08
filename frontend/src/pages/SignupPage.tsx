@@ -30,13 +30,13 @@ export function SignupPage() {
 
   return (
     <div className="mx-auto max-w-sm space-y-4">
-      <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
         Sign up
       </h1>
       {confirmationSent ? (
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           Check your email to confirm your account, then{' '}
-          <Link to="/login" style={{ color: 'var(--series-blue)' }}>
+          <Link to="/login" style={{ color: 'var(--accent)' }}>
             log in
           </Link>
           .
@@ -71,15 +71,15 @@ export function SignupPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded border px-3 py-1.5 text-sm font-medium"
-              style={{ borderColor: 'var(--border)', background: 'var(--series-blue)', color: '#ffffff' }}
+              className="w-full rounded-full px-3 py-1.5 text-sm font-bold"
+              style={{ background: 'var(--accent)', color: '#052e1f' }}
             >
               {submitting ? 'Signing up...' : 'Sign up'}
             </button>
           </form>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: 'var(--series-blue)' }}>
+            <Link to="/login" style={{ color: 'var(--accent)' }}>
               Log in
             </Link>
           </p>

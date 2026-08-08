@@ -64,14 +64,12 @@ export function AccountPage() {
   }
 
   if (loading || status === 'loading') {
-    return (
-      <div className="h-24 animate-pulse rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
-    );
+    return <div className="h-24 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
   }
 
   if (status === 'error') {
     return (
-      <div className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage}</p>
       </div>
     );
@@ -79,20 +77,20 @@ export function AccountPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
         My Account
       </h1>
-      <div className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--text-muted)' }}>Signed in as</p>
-        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+        <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
           {email}
         </p>
       </div>
       <button
         type="button"
         onClick={handleLogout}
-        className="rounded border px-3 py-1.5 text-sm font-medium"
-        style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+        className="rounded-full px-3 py-1.5 text-sm font-bold"
+        style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
       >
         Log out
       </button>
