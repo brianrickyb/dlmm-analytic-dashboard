@@ -1,9 +1,6 @@
 export interface Position {
-  id: string;
-  walletAddress: string;
   poolAddress: string;
-  txSignature: string;
-  createdAt: string;
+  positionAddress: string;
 }
 
 export interface BuildTxResponse {

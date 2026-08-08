@@ -72,14 +72,14 @@ export function MyPositionsPage() {
       <ul className="space-y-2">
         {positions.map((position) => (
           <li
-            key={position.id}
+            key={position.positionAddress}
             className="rounded-lg border p-3 text-sm"
             style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
           >
             <p style={{ color: 'var(--text-primary)' }}>Pool: {position.poolAddress}</p>
-            <p style={{ color: 'var(--text-muted)' }}>{new Date(position.createdAt).toLocaleString()}</p>
+            <p style={{ color: 'var(--text-muted)' }}>Position: {position.positionAddress}</p>
             <a
-              href={`https://solscan.io/tx/${position.txSignature}?cluster=devnet`}
+              href={`https://solscan.io/account/${position.positionAddress}?cluster=devnet`}
               target="_blank"
               rel="noreferrer"
               style={{ color: 'var(--series-blue)' }}

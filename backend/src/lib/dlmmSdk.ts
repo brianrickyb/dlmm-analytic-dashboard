@@ -30,8 +30,17 @@ export interface DlmmPool {
   initializePositionAndAddLiquidityByStrategy(params: InitializePositionAndAddLiquidityParams): Promise<Transaction>;
 }
 
+export interface OnChainLbPosition {
+  publicKey: PublicKey;
+}
+
+export interface OnChainPositionInfo {
+  lbPairPositionsData: OnChainLbPosition[];
+}
+
 interface DlmmStatic {
   create(connection: Connection, poolAddress: PublicKey): Promise<DlmmPool>;
+  getAllLbPairPositionsByUser(connection: Connection, userPubKey: PublicKey): Promise<Map<string, OnChainPositionInfo>>;
 }
 
 export function loadDlmmSdk(): DlmmStatic {

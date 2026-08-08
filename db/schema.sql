@@ -96,21 +96,9 @@ CREATE INDEX idx_pool_latest_tvl    ON pool_latest_stats (tvl_usd DESC);
 CREATE INDEX idx_pool_latest_volume ON pool_latest_stats (volume_24h_usd DESC);
 CREATE INDEX idx_pool_latest_apr    ON pool_latest_stats (fee_apr_24h DESC);
 
--- =========================================================
--- positions: catatan add-liquidity yang berhasil di-submit user via wallet
--- mereka sendiri. Backend menulis baris ini HANYA setelah verifikasi
--- on-chain independen (lihat routes/positions.ts) — tidak percaya klaim
--- frontend begitu saja. RLS tidak diaktifkan karena tabel ini hanya
--- diakses lewat backend (service-role client), tidak pernah lewat
--- supabase-js langsung dari frontend — sama seperti tabel-tabel lain di
--- file ini (lihat SECURITY NOTE di atas).
--- =========================================================
-CREATE TABLE positions (
-  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  wallet_address TEXT NOT NULL,
-  pool_address   TEXT NOT NULL,
-  tx_signature   TEXT NOT NULL UNIQUE,
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_positions_wallet ON positions (wallet_address, created_at DESC);
+-- NOTE: an earlier revision of this schema had a `positions` table here,
+-- caching each wallet's add-liquidity history off-chain. That's redundant —
+-- the DLMM SDK's getAllLbPairPositionsByUser() answers "what positions does
+-- this wallet hold" directly from on-chain state, which is also the actual
+-- source of truth. GET /api/positions (backend) queries on-chain now;
+-- no database table backs it.

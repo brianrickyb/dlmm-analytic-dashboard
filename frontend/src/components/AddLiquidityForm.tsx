@@ -2,10 +2,21 @@ import { useState, type FormEvent } from 'react';
 import { Transaction } from '@solana/web3.js';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { buildAddLiquidityTx } from '../lib/api/liquidity';
-import { createPosition } from '../lib/api/positions';
 import { usePositionsRefresh } from '../lib/positionsRefresh';
 
 type FlowState = 'idle' | 'building' | 'awaiting-signature' | 'submitting' | 'confirming' | 'success' | 'error';
+
+// `Buffer` is a Node.js global, not available in the browser without a
+// polyfill. Transaction.from() accepts a Uint8Array just as well, so decode
+// the base64 payload without depending on Buffer at all.
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
 
 export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
   const { connection } = useConnection();
@@ -47,7 +58,7 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
         userPublicKey: publicKey.toBase58(),
       });
 
-      const tx = Transaction.from(Buffer.from(built.transaction, 'base64'));
+      const tx = Transaction.from(base64ToUint8Array(built.transaction));
 
       setState('awaiting-signature');
       const signedTx = await signTransaction(tx);
@@ -66,8 +77,9 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
         throw new Error('Transaction failed on-chain.');
       }
 
-      await createPosition({ walletAddress: publicKey.toBase58(), poolAddress: poolAddressInput, txSignature: sig });
-
+      // No backend call needed to record this — the new position now exists
+      // on-chain and MyPositionsPage reads directly from the DLMM program via
+      // getAllLbPairPositionsByUser. bump() just triggers its refetch.
       setState('success');
       bump();
     } catch (err) {
