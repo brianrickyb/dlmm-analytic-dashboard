@@ -168,10 +168,11 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
           <button
             type="button"
             onClick={runFlow}
+            disabled={busy}
             className="rounded border px-3 py-1.5 text-xs font-medium"
             style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
           >
-            Retry
+            {busy ? `${state}...` : 'Retry'}
           </button>
         </div>
       ) : null}
