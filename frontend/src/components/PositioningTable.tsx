@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { PairPositioning } from '../types/screener';
 import { formatPercent } from '../lib/format';
 import { Tooltip } from './Tooltip';
+import { Badge } from './Badge';
 
 type SortKey = 'buyRatio' | 'fundingRate' | 'price24hPct';
 
@@ -10,6 +11,8 @@ const columns: { key: SortKey; label: string; termKey?: string }[] = [
   { key: 'fundingRate', label: 'Funding Rate', termKey: 'fundingRate' },
   { key: 'price24hPct', label: '24h Change' },
 ];
+
+const GRID_COLS = 'grid-cols-[1.5fr_1fr_1fr_1fr]';
 
 interface PositioningTableProps {
   pairs: PairPositioning[];
@@ -40,62 +43,56 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--gridline)' }}>
-            <th className="px-4 py-3 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
-              Pair
-            </th>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                className="cursor-pointer select-none px-4 py-3 text-right font-medium"
-                style={{ color: 'var(--text-muted)' }}
-                onClick={() => toggleSort(col.key)}
-              >
-                {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
-                {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((pair) => {
-            const isTopLong = topLongSymbols.includes(pair.symbol);
-            const isTopShort = topShortSymbols.includes(pair.symbol);
-            return (
-              <tr key={pair.symbol} style={{ borderBottom: '1px solid var(--gridline)' }}>
-                <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {pair.symbol}
-                  {isTopLong ? (
-                    <span className="ml-2 text-xs" style={{ color: 'var(--status-good)' }}>
-                      Long-leaning
-                    </span>
-                  ) : null}
-                  {isTopShort ? (
-                    <span className="ml-2 text-xs" style={{ color: 'var(--status-critical)' }}>
-                      Short-leaning
-                    </span>
-                  ) : null}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                  {(pair.buyRatio * 100).toFixed(1)}% / {(pair.sellRatio * 100).toFixed(1)}%
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                  {formatPercent(pair.fundingRate * 100, 4)}
-                </td>
-                <td
-                  className="px-4 py-3 text-right tabular-nums"
-                  style={{ color: pair.price24hPct >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}
-                >
-                  {formatPercent(pair.price24hPct)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="space-y-1.5">
+      <div className={`grid ${GRID_COLS} gap-4 px-4`}>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+          Pair
+        </span>
+        {columns.map((col) => (
+          <button
+            key={col.key}
+            type="button"
+            onClick={() => toggleSort(col.key)}
+            className="text-right text-xs font-medium"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
+            {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+          </button>
+        ))}
+      </div>
+      {sorted.map((pair) => {
+        const isTopLong = topLongSymbols.includes(pair.symbol);
+        const isTopShort = topShortSymbols.includes(pair.symbol);
+        return (
+          <div
+            key={pair.symbol}
+            className={`grid ${GRID_COLS} items-center gap-4 rounded-xl border px-4 py-3`}
+            style={{
+              borderColor: isTopLong ? 'var(--accent)' : 'var(--border)',
+              background: isTopLong ? 'linear-gradient(to right, var(--accent-bg), var(--surface-1))' : 'var(--surface-1)',
+            }}
+          >
+            <div className="flex items-center gap-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {pair.symbol}
+              {isTopLong ? <Badge variant="accent">Long-leaning</Badge> : null}
+              {isTopShort ? <Badge variant="critical">Short-leaning</Badge> : null}
+            </div>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+              {(pair.buyRatio * 100).toFixed(1)}% / {(pair.sellRatio * 100).toFixed(1)}%
+            </div>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+              {formatPercent(pair.fundingRate * 100, 4)}
+            </div>
+            <div
+              className="text-right tabular-nums"
+              style={{ color: pair.price24hPct >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}
+            >
+              {formatPercent(pair.price24hPct)}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

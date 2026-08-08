@@ -55,7 +55,7 @@ export function ScreenerPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
         Screener
       </h1>
       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -65,19 +65,19 @@ export function ScreenerPage() {
       </p>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
           Market Positioning
         </h2>
         {majorsStatus === 'loading' ? (
-          <div className="h-48 animate-pulse rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div className="h-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
         ) : majorsStatus === 'error' ? (
-          <div className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+          <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
             <p style={{ color: 'var(--status-critical)' }}>{majorsError}</p>
             <button
               type="button"
               onClick={() => setMajorsRequestId((n) => n + 1)}
-              className="mt-2 rounded border px-3 py-1 text-xs font-medium"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+              className="mt-2 rounded-full px-3 py-1 text-xs font-bold"
+              style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
             >
               Retry
             </button>
@@ -88,7 +88,7 @@ export function ScreenerPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
           Trending / Narrative Watch
         </h2>
         <TrendingWatch

@@ -12,9 +12,9 @@ interface TrendingWatchProps {
 export function TrendingWatch({ status, coins, errorMessage, onRetry }: TrendingWatchProps) {
   if (status === 'loading') {
     return (
-      <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-12 animate-pulse rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div key={i} className="h-16 w-40 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
         ))}
       </div>
     );
@@ -22,13 +22,13 @@ export function TrendingWatch({ status, coins, errorMessage, onRetry }: Trending
 
   if (status === 'error') {
     return (
-      <div className="rounded-lg border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Failed to load trending coins.'}</p>
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 rounded border px-3 py-1 text-xs font-medium"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+          className="mt-2 rounded-full px-3 py-1 text-xs font-bold"
+          style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
         >
           Retry
         </button>
@@ -37,36 +37,31 @@ export function TrendingWatch({ status, coins, errorMessage, onRetry }: Trending
   }
 
   return (
-    <div className="rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <p className="border-b px-4 py-2 text-xs" style={{ borderColor: 'var(--gridline)', color: 'var(--text-muted)' }}>
+    <div className="space-y-2">
+      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
         Search-interest signal from CoinGecko — not a return-potential score. Sorted smallest/most speculative market
         cap first.
       </p>
-      <ul>
+      <div className="flex flex-wrap gap-2">
         {coins.map((coin) => (
-          <li
-            key={coin.id}
-            className="flex items-center justify-between px-4 py-2 text-sm"
-            style={{ borderBottom: '1px solid var(--gridline)' }}
-          >
-            <div>
-              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                {coin.name}
-              </span>{' '}
-              <span style={{ color: 'var(--text-muted)' }}>{coin.symbol}</span>
-              <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {coin.marketCapRank !== null ? <Tooltip termKey="marketCapRank">rank #{coin.marketCapRank}</Tooltip> : 'unranked'}
+          <div key={coin.id} className="min-w-[160px] rounded-xl border px-3 py-2 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {coin.symbol}
+              </span>
+              <span
+                className="text-xs font-semibold tabular-nums"
+                style={{ color: coin.priceChangePct24h >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}
+              >
+                {formatPercent(coin.priceChangePct24h)}
               </span>
             </div>
-            <span
-              className="tabular-nums font-medium"
-              style={{ color: coin.priceChangePct24h >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}
-            >
-              {formatPercent(coin.priceChangePct24h)}
-            </span>
-          </li>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {coin.name} · {coin.marketCapRank !== null ? <Tooltip termKey="marketCapRank">rank #{coin.marketCapRank}</Tooltip> : 'unranked'}
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
