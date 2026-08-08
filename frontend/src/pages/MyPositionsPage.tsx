@@ -43,9 +43,7 @@ export function MyPositionsPage() {
   }
 
   if (status === 'loading') {
-    return (
-      <div className="h-24 animate-pulse rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
-    );
+    return <div className="h-24 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
   }
 
   if (status === 'error') {
@@ -66,24 +64,15 @@ export function MyPositionsPage() {
 
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
         My Positions
       </h1>
-      <ul className="space-y-2">
+      <ul className="space-y-1.5">
         {positions.map((position) => (
-          <li
-            key={position.positionAddress}
-            className="rounded-lg border p-3 text-sm"
-            style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
-          >
+          <li key={position.positionAddress} className="rounded-xl border p-3 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
             <p style={{ color: 'var(--text-primary)' }}>Pool: {position.poolAddress}</p>
             <p style={{ color: 'var(--text-muted)' }}>Position: {position.positionAddress}</p>
-            <a
-              href={`https://solscan.io/account/${position.positionAddress}?cluster=devnet`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: 'var(--series-blue)' }}
-            >
+            <a href={`https://solscan.io/account/${position.positionAddress}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>
               View on Solscan
             </a>
           </li>
