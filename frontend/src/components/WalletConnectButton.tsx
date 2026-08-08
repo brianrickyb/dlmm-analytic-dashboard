@@ -69,7 +69,7 @@ export function WalletConnectButton() {
         onClick={handleConnectClick}
         disabled={connecting}
         className="rounded-full px-3 py-1.5 text-sm font-bold"
-        style={{ background: 'var(--accent)', color: '#052e1f' }}
+        style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
       >
         {connecting ? 'Connecting...' : 'Connect Wallet'}
       </button>

@@ -72,7 +72,7 @@ export function SignupPage() {
               type="submit"
               disabled={submitting}
               className="w-full rounded-full px-3 py-1.5 text-sm font-bold"
-              style={{ background: 'var(--accent)', color: '#052e1f' }}
+              style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
             >
               {submitting ? 'Signing up...' : 'Sign up'}
             </button>

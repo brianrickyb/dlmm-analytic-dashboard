@@ -38,7 +38,7 @@ export function NewsFilters({ currencies, onCurrenciesChange, source, onSourceCh
               style={{
                 borderColor: active ? 'transparent' : 'var(--border)',
                 background: active ? 'var(--accent)' : 'var(--surface-1)',
-                color: active ? '#052e1f' : 'var(--text-secondary)',
+                color: active ? 'var(--accent-fg)' : 'var(--text-secondary)',
               }}
             >
               {s.label}

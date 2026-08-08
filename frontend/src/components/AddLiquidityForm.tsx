@@ -154,7 +154,7 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
           type="submit"
           disabled={busy}
           className="col-span-2 rounded-full px-3 py-1.5 text-sm font-bold"
-          style={{ background: 'var(--accent)', color: '#052e1f' }}
+          style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
         >
           {busy ? `${state}...` : 'Add Liquidity'}
         </button>
