@@ -9,9 +9,16 @@ const VIEWPORT_MARGIN = 8;
 interface TooltipProps {
   termKey: string;
   children: ReactNode;
+  // Set to false when this trigger is nested inside another focusable
+  // control (e.g. a sortable column <button> or a clickable row) — a
+  // focusable descendant inside a button/role="button" ancestor is an
+  // invalid ARIA nesting. Hover still reveals the tooltip either way; this
+  // only drops the trigger's own tab stop and keyboard handling so the
+  // ancestor stays the sole, valid focus target.
+  interactive?: boolean;
 }
 
-export function Tooltip({ termKey, children }: TooltipProps) {
+export function Tooltip({ termKey, children, interactive = true }: TooltipProps) {
   const [open, setOpen] = useState(false);
   const [placement, setPlacement] = useState({ top: 0, left: 0, flip: false });
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -59,15 +66,19 @@ export function Tooltip({ termKey, children }: TooltipProps) {
         ref={triggerRef}
         className="cursor-help border-b border-dotted"
         style={{ borderColor: 'var(--text-muted)' }}
-        tabIndex={0}
+        tabIndex={interactive ? 0 : undefined}
         aria-describedby={open ? id : undefined}
         onMouseEnter={show}
         onMouseLeave={hide}
-        onFocus={show}
-        onBlur={hide}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') hide();
-        }}
+        onFocus={interactive ? show : undefined}
+        onBlur={interactive ? hide : undefined}
+        onKeyDown={
+          interactive
+            ? (e) => {
+                if (e.key === 'Escape') hide();
+              }
+            : undefined
+        }
       >
         {children}
       </span>

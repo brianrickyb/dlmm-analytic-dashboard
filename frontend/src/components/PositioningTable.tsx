@@ -57,7 +57,13 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
               className="text-right text-xs font-medium"
               style={{ color: 'var(--text-muted)' }}
             >
-              {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
+              {col.termKey ? (
+                <Tooltip termKey={col.termKey} interactive={false}>
+                  {col.label}
+                </Tooltip>
+              ) : (
+                col.label
+              )}
               {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
             </button>
           ))}

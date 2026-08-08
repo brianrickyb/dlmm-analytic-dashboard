@@ -1,4 +1,5 @@
 import type { NewsPost } from '../types/news';
+import { PillButton } from './PillButton';
 
 interface NewsListProps {
   status: 'loading' | 'error' | 'ready';
@@ -32,14 +33,9 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
     return (
       <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Failed to load news.'}</p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-2 rounded-full px-3 py-1 text-xs font-bold"
-          style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
-        >
+        <PillButton onClick={onRetry} className="mt-2 text-xs">
           Retry
-        </button>
+        </PillButton>
       </div>
     );
   }

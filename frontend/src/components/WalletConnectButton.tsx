@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { PillButton } from './PillButton';
 
 function shortenAddress(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
@@ -51,28 +52,17 @@ export function WalletConnectButton() {
 
   if (connected && publicKey) {
     return (
-      <button
-        type="button"
-        onClick={() => disconnect()}
-        className="rounded-full px-3 py-1.5 text-xs font-bold"
-        style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
-      >
+      <PillButton onClick={() => disconnect()} className="text-xs">
         {shortenAddress(publicKey.toBase58())}
-      </button>
+      </PillButton>
     );
   }
 
   return (
     <div className="relative" ref={containerRef}>
-      <button
-        type="button"
-        onClick={handleConnectClick}
-        disabled={connecting}
-        className="rounded-full px-3 py-1.5 text-sm font-bold"
-        style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
-      >
+      <PillButton variant="solid" onClick={handleConnectClick} disabled={connecting} className="text-sm">
         {connecting ? 'Connecting...' : 'Connect Wallet'}
-      </button>
+      </PillButton>
       {error ? (
         <p className="absolute right-0 mt-1 whitespace-nowrap text-xs" style={{ color: 'var(--status-critical)' }}>
           {error}

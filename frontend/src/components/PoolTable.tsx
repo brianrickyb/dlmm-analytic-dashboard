@@ -52,7 +52,13 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
               className="text-right text-xs font-medium"
               style={{ color: 'var(--text-muted)' }}
             >
-              {col.termKey ? <Tooltip termKey={col.termKey}>{col.label}</Tooltip> : col.label}
+              {col.termKey ? (
+                <Tooltip termKey={col.termKey} interactive={false}>
+                  {col.label}
+                </Tooltip>
+              ) : (
+                col.label
+              )}
               {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
             </button>
           ))}
@@ -62,6 +68,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
             key={pool.id}
             role="button"
             tabIndex={0}
+            aria-label={`View ${pool.name} pool details`}
             onClick={() => navigate(`/pools/${pool.id}`)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -77,7 +84,10 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
                 {pool.name}
               </div>
               <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                <Tooltip termKey="binStep">bin step</Tooltip> {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
+                <Tooltip termKey="binStep" interactive={false}>
+                  bin step
+                </Tooltip>{' '}
+                {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
               </div>
             </div>
             <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>

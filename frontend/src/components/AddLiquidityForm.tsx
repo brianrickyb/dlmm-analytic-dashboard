@@ -3,6 +3,7 @@ import { Transaction } from '@solana/web3.js';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { buildAddLiquidityTx } from '../lib/api/liquidity';
 import { usePositionsRefresh } from '../lib/positionsRefresh';
+import { PillButton } from './PillButton';
 
 type FlowState = 'idle' | 'building' | 'awaiting-signature' | 'submitting' | 'confirming' | 'success' | 'error';
 
@@ -150,14 +151,9 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
           className="rounded border px-3 py-1.5 text-sm"
           style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
         />
-        <button
-          type="submit"
-          disabled={busy}
-          className="col-span-2 rounded-full px-3 py-1.5 text-sm font-bold"
-          style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
-        >
+        <PillButton type="submit" variant="solid" disabled={busy} className="col-span-2 text-sm">
           {busy ? `${state}...` : 'Add Liquidity'}
-        </button>
+        </PillButton>
       </form>
 
       {state === 'error' ? (
@@ -165,15 +161,9 @@ export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
           <p className="text-xs" style={{ color: 'var(--status-critical)' }}>
             {errorMessage}
           </p>
-          <button
-            type="button"
-            onClick={runFlow}
-            disabled={busy}
-            className="rounded-full px-3 py-1.5 text-xs font-bold"
-            style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
-          >
+          <PillButton onClick={runFlow} disabled={busy} className="text-xs">
             {busy ? `${state}...` : 'Retry'}
-          </button>
+          </PillButton>
         </div>
       ) : null}
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth/AuthContext';
+import { PillButton } from '../components/PillButton';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
@@ -86,14 +87,9 @@ export function AccountPage() {
           {email}
         </p>
       </div>
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="rounded-full px-3 py-1.5 text-sm font-bold"
-        style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
-      >
+      <PillButton onClick={handleLogout} className="text-xs">
         Log out
-      </button>
+      </PillButton>
     </div>
   );
 }

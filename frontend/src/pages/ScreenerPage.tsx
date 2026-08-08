@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PositioningTable } from '../components/PositioningTable';
 import { TrendingWatch } from '../components/TrendingWatch';
+import { PillButton } from '../components/PillButton';
 import { fetchMajors, fetchTrending } from '../lib/api/screener';
 import type { MajorsResponse, TrendingCoin } from '../types/screener';
 
@@ -73,14 +74,9 @@ export function ScreenerPage() {
         ) : majorsStatus === 'error' ? (
           <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
             <p style={{ color: 'var(--status-critical)' }}>{majorsError}</p>
-            <button
-              type="button"
-              onClick={() => setMajorsRequestId((n) => n + 1)}
-              className="mt-2 rounded-full px-3 py-1 text-xs font-bold"
-              style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
-            >
+            <PillButton onClick={() => setMajorsRequestId((n) => n + 1)} className="mt-2 text-xs">
               Retry
-            </button>
+            </PillButton>
           </div>
         ) : (
           <PositioningTable pairs={majors!.pairs} topLongSymbols={majors!.topLongSymbols} topShortSymbols={majors!.topShortSymbols} />

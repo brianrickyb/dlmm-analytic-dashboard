@@ -1,6 +1,7 @@
 import type { TrendingCoin } from '../types/screener';
 import { formatPercent } from '../lib/format';
 import { Tooltip } from './Tooltip';
+import { PillButton } from './PillButton';
 
 interface TrendingWatchProps {
   status: 'loading' | 'error' | 'ready';
@@ -24,14 +25,9 @@ export function TrendingWatch({ status, coins, errorMessage, onRetry }: Trending
     return (
       <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Failed to load trending coins.'}</p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-2 rounded-full px-3 py-1 text-xs font-bold"
-          style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
-        >
+        <PillButton onClick={onRetry} className="mt-2 text-xs">
           Retry
-        </button>
+        </PillButton>
       </div>
     );
   }

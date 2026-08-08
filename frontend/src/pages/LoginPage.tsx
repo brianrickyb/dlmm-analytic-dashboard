@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth/AuthContext';
+import { PillButton } from '../components/PillButton';
 
 export function LoginPage() {
   const { signIn } = useAuth();
@@ -52,14 +53,9 @@ export function LoginPage() {
             {error}
           </p>
         ) : null}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-full px-3 py-1.5 text-sm font-bold"
-          style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
-        >
+        <PillButton type="submit" variant="solid" disabled={submitting} className="w-full text-sm">
           {submitting ? 'Logging in...' : 'Log in'}
-        </button>
+        </PillButton>
       </form>
       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
         Don't have an account?{' '}
