@@ -54,8 +54,8 @@ export function WalletConnectButton() {
       <button
         type="button"
         onClick={() => disconnect()}
-        className="rounded border px-3 py-1.5 text-sm font-medium"
-        style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+        className="rounded-full px-3 py-1.5 text-xs font-bold"
+        style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
       >
         {shortenAddress(publicKey.toBase58())}
       </button>
@@ -68,8 +68,8 @@ export function WalletConnectButton() {
         type="button"
         onClick={handleConnectClick}
         disabled={connecting}
-        className="rounded border px-3 py-1.5 text-sm font-medium"
-        style={{ borderColor: 'var(--border)', background: 'var(--series-blue)', color: '#ffffff' }}
+        className="rounded-full px-3 py-1.5 text-sm font-bold"
+        style={{ background: 'var(--accent)', color: '#052e1f' }}
       >
         {connecting ? 'Connecting...' : 'Connect Wallet'}
       </button>
@@ -80,7 +80,7 @@ export function WalletConnectButton() {
       ) : null}
       {pickerOpen ? (
         <div
-          className="absolute right-0 z-10 mt-1 rounded border text-sm"
+          className="absolute right-0 z-10 mt-1 rounded-xl border text-sm"
           style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
         >
           {wallets.map((w) => (
