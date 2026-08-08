@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { registerNewsRoutes } from './routes/news.js';
 import { registerScreenerRoutes } from './routes/screener.js';
 import { registerAccountRoutes } from './routes/account.js';
+import { registerLiquidityRoutes } from './routes/liquidity.js';
 
 export function buildServer() {
   const app = Fastify({ logger: true });
@@ -13,6 +14,7 @@ export function buildServer() {
   registerNewsRoutes(app);
   registerScreenerRoutes(app);
   registerAccountRoutes(app);
+  registerLiquidityRoutes(app);
 
   return app;
 }
