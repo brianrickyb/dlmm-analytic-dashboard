@@ -1,0 +1,122 @@
+import { describe, expect, it, vi } from 'vitest';
+import { createCryptoPanicService } from './cryptopanic.js';
+
+const FIXED_NOW = new Date('2026-08-09T12:00:00Z').getTime();
+
+function hoursAgoIso(hours: number): string {
+  return new Date(FIXED_NOW - hours * 3_600_000).toISOString();
+}
+
+function fakePostsResponse(posts: { title: string; url: string; publishedAt: string }[]) {
+  return vi.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      results: posts.map((p) => ({ title: p.title, url: p.url, published_at: p.publishedAt })),
+    }),
+  } as Response);
+}
+
+describe('createCryptoPanicService — no API key configured', () => {
+  it('returns null without making a request', async () => {
+    const fetchImpl = vi.fn();
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: undefined });
+
+    const result = await service.getRecentNewsForSymbol('FOO');
+
+    expect(result).toBeNull();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe('createCryptoPanicService — freshness', () => {
+  it('returns the most recent article when it is fresh (within 48h)', async () => {
+    const fetchImpl = fakePostsResponse([{ title: 'FOO surges', url: 'https://example.com/foo', publishedAt: hoursAgoIso(2) }]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    const result = await service.getRecentNewsForSymbol('FOO');
+
+    expect(result).toEqual({ title: 'FOO surges', url: 'https://example.com/foo', publishedAt: hoursAgoIso(2) });
+  });
+
+  it('returns null when the most recent article is older than 48h', async () => {
+    const fetchImpl = fakePostsResponse([{ title: 'Old news', url: 'https://example.com/old', publishedAt: hoursAgoIso(49) }]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    const result = await service.getRecentNewsForSymbol('FOO');
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null when there are no results', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    expect(await service.getRecentNewsForSymbol('FOO')).toBeNull();
+  });
+});
+
+describe('createCryptoPanicService — best-effort failure handling (never throws)', () => {
+  it('returns null when the network request fails', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await expect(service.getRecentNewsForSymbol('FOO')).resolves.toBeNull();
+  });
+
+  it('returns null on a non-ok response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({}) } as Response);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await expect(service.getRecentNewsForSymbol('FOO')).resolves.toBeNull();
+  });
+
+  it('returns null when the response body is not valid JSON', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('bad json');
+      },
+    } as unknown as Response);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await expect(service.getRecentNewsForSymbol('FOO')).resolves.toBeNull();
+  });
+});
+
+describe('createCryptoPanicService — caching', () => {
+  it('reuses the cached result per symbol within the TTL', async () => {
+    const fetchImpl = fakePostsResponse([{ title: 'FOO surges', url: 'https://example.com/foo', publishedAt: hoursAgoIso(2) }]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForSymbol('FOO');
+    currentTime += 30_000;
+    await service.getRecentNewsForSymbol('FOO');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches once the TTL has expired', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForSymbol('FOO');
+    currentTime += 90_001;
+    await service.getRecentNewsForSymbol('FOO');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('caches independently per symbol', async () => {
+    const fetchImpl = fakePostsResponse([{ title: 'X', url: 'https://example.com/x', publishedAt: hoursAgoIso(1) }]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForSymbol('FOO');
+    await service.getRecentNewsForSymbol('BAR');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+});
