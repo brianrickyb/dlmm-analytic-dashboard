@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { PositioningTable } from '../components/PositioningTable';
 import { TrendingWatch } from '../components/TrendingWatch';
+import { PumpWatch } from '../components/PumpWatch';
 import { PillButton } from '../components/PillButton';
-import { fetchMajors, fetchTrending } from '../lib/api/screener';
-import type { MajorsResponse, TrendingCoin } from '../types/screener';
+import { fetchMajors, fetchTrending, fetchPumpWatch } from '../lib/api/screener';
+import type { MajorsResponse, TrendingCoin, PumpCandidate } from '../types/screener';
 
 export function ScreenerPage() {
   const [majorsStatus, setMajorsStatus] = useState<'loading' | 'error' | 'ready'>('loading');
@@ -15,6 +16,11 @@ export function ScreenerPage() {
   const [trending, setTrending] = useState<TrendingCoin[]>([]);
   const [trendingError, setTrendingError] = useState<string | undefined>(undefined);
   const [trendingRequestId, setTrendingRequestId] = useState(0);
+
+  const [pumpStatus, setPumpStatus] = useState<'loading' | 'error' | 'ready'>('loading');
+  const [pumpCandidates, setPumpCandidates] = useState<PumpCandidate[]>([]);
+  const [pumpError, setPumpError] = useState<string | undefined>(undefined);
+  const [pumpRequestId, setPumpRequestId] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +60,25 @@ export function ScreenerPage() {
     };
   }, [trendingRequestId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setPumpStatus('loading');
+    fetchPumpWatch()
+      .then((result) => {
+        if (cancelled) return;
+        setPumpCandidates(result);
+        setPumpStatus('ready');
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setPumpError(err instanceof Error ? err.message : 'Failed to load pump watch.');
+        setPumpStatus('error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pumpRequestId]);
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
@@ -92,6 +117,25 @@ export function ScreenerPage() {
           coins={trending}
           errorMessage={trendingError}
           onRetry={() => setTrendingRequestId((n) => n + 1)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          Pump Watch
+        </h2>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          Pools created in the last 72 hours with a 6h price move of 25%+ and meaningful volume —
+          computed from raw on-chain data across all networks GeckoTerminal indexes, not a
+          third-party trending list. A "News" tag means a recent (last 48h) article was found for
+          that token; no tag doesn't mean nothing's happening, just that nothing's been published
+          yet. Not investment advice — verify independently.
+        </p>
+        <PumpWatch
+          status={pumpStatus}
+          candidates={pumpCandidates}
+          errorMessage={pumpError}
+          onRetry={() => setPumpRequestId((n) => n + 1)}
         />
       </div>
     </div>
