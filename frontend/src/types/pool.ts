@@ -27,7 +27,7 @@ export interface PoolLatestStats {
   volume24hUsd: number;
   fees24hUsd: number;
   feeApr24h: number;
-  activeBinId: number;
+  activeBinId?: number | null;
   currentPrice: number;
 }
 
@@ -43,6 +43,6 @@ export interface PoolSnapshot {
   volume24hUsd: number;
   fees24hUsd: number;
   feeApr24h: number;
-  activeBinId: number;
+  activeBinId?: number | null;
   currentPrice: number;
 }
