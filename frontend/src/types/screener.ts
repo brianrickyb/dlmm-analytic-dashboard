@@ -20,3 +20,21 @@ export interface TrendingCoin {
   priceUsd: number;
   priceChangePct24h: number;
 }
+
+export interface NewsMatch {
+  title: string;
+  url: string;
+  publishedAt: string;
+}
+
+export interface PumpCandidate {
+  poolId: string;
+  network: string;
+  dex: string;
+  symbol: string;
+  priceChangePct6h: number;
+  volumeUsd24h: number;
+  poolCreatedAt: string;
+  poolUrl: string;
+  news: NewsMatch | null;
+}

@@ -1,4 +1,4 @@
-import type { MajorsResponse, TrendingCoin } from '../../types/screener';
+import type { MajorsResponse, TrendingCoin, PumpCandidate } from '../../types/screener';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
@@ -22,4 +22,15 @@ export async function fetchTrending(): Promise<TrendingCoin[]> {
   }
 
   return body.coins as TrendingCoin[];
+}
+
+export async function fetchPumpWatch(): Promise<PumpCandidate[]> {
+  const response = await fetch(new URL('/api/screener/pump-watch', API_BASE_URL).toString());
+  const body = await response.json();
+
+  if (!response.ok) {
+    throw new Error(typeof body?.error === 'string' ? body.error : 'Failed to load pump watch.');
+  }
+
+  return body.items as PumpCandidate[];
 }
