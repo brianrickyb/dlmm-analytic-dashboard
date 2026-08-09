@@ -117,3 +117,22 @@ describe('calculateNetYield — entry date matching', () => {
     expect(result.impermanentLossPct).toBeCloseTo(0, 10); // entry price === current price (same snapshot)
   });
 });
+
+describe('calculateNetYield — very short series (newly-curated live pool)', () => {
+  it('does not crash and returns zero IL for a single-snapshot series', () => {
+    const single: PoolSnapshot[] = [snapshot({ snapshotAt: '2026-01-01T00:00:00Z', currentPrice: 100, tvlUsd: 1_000_000, fees24hUsd: 500 })];
+
+    const result = calculateNetYield({
+      depositUsd: 10_000,
+      entryDate: '2026-01-01T00:00:00Z',
+      lowerPrice: 90,
+      upperPrice: 120,
+      series: single,
+    });
+
+    expect(result.daysHeld).toBe(1);
+    expect(result.daysInRange).toBe(1);
+    expect(result.impermanentLossPct).toBeCloseTo(0, 10);
+    expect(result.feesEarnedUsd).toBeCloseTo(5, 6); // 10000/1_000_000 * 500
+  });
+});

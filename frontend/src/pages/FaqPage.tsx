@@ -22,9 +22,8 @@ export function FaqPage() {
           This is a portfolio project analyzing Meteora DLMM pools on Solana, crypto news, and
           futures market positioning. Nothing on this dashboard — including the trending watchlist
           and long/short positioning tables — is financial advice or a recommendation to buy or
-          sell anything. The News and Screener pages use live public APIs and may be delayed,
-          incomplete, or wrong; the Pools page uses generated sample data for this demo, not live
-          Meteora data. Always verify independently before making decisions.
+          sell anything. The News, Screener, and Pools pages all use live public APIs and may be
+          delayed, incomplete, or wrong. Always verify independently before making decisions.
         </p>
       </div>
 
