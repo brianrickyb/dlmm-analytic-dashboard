@@ -102,3 +102,20 @@ CREATE INDEX idx_pool_latest_apr    ON pool_latest_stats (fee_apr_24h DESC);
 -- this wallet hold" directly from on-chain state, which is also the actual
 -- source of truth. GET /api/positions (backend) queries on-chain now;
 -- no database table backs it.
+
+-- =========================================================
+-- pool_tvl_daily: minimal daily TVL snapshot, filled by a scheduled worker
+-- (backend/src/worker/snapshotPoolTvl.ts). Meteora's public API gives current
+-- TVL only (no historical TVL endpoint) but DOES give historical price
+-- (OHLCV) and volume/fees directly — this table exists solely to cover that
+-- one remaining gap, so it's deliberately much smaller than the
+-- pool_snapshots design above (no partitioning needed at this scale: ~50
+-- curated pools x one row/day).
+-- =========================================================
+CREATE TABLE pool_tvl_daily (
+  pool_address  TEXT NOT NULL,
+  day           DATE NOT NULL,
+  tvl_usd       NUMERIC(24, 6) NOT NULL,
+  captured_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (pool_address, day)
+);
