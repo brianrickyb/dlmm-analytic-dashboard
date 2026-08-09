@@ -12,9 +12,13 @@ export interface CryptoPanicServiceDeps {
 }
 
 const DEFAULT_CACHE_TTL_MS = 90 * 1000;
+const NEGATIVE_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes — "no news found" changes far less often than a real hit does
 const FRESHNESS_WINDOW_MS = 48 * 60 * 60 * 1000;
 const POSTS_URL = 'https://cryptopanic.com/api/v1/posts/';
 
+// This service is deliberately best-effort and must never throw, unlike its sibling services
+// (bybit.ts/coingecko.ts/geckoterminal.ts) — news is a nice-to-have enrichment, not a data source
+// the route depends on, so every failure path here resolves to `null` instead of propagating.
 export function createCryptoPanicService(deps: CryptoPanicServiceDeps = {}) {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
@@ -31,7 +35,8 @@ export function createCryptoPanicService(deps: CryptoPanicServiceDeps = {}) {
     }
 
     const result = await fetchNews(symbol);
-    cache.set(symbol, { expiresAt: now() + cacheTtlMs, data: result });
+    const ttl = result === null ? NEGATIVE_CACHE_TTL_MS : cacheTtlMs;
+    cache.set(symbol, { expiresAt: now() + ttl, data: result });
     return result;
   }
 

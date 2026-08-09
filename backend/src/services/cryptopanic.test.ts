@@ -99,7 +99,11 @@ describe('createCryptoPanicService — caching', () => {
   });
 
   it('re-fetches once the TTL has expired', async () => {
-    const fetchImpl = fakePostsResponse([]);
+    // Uses a real-match fixture (not an empty/no-results one) so this exercises the
+    // positive-cache TTL (cacheTtlMs) rather than the longer negative-cache TTL that
+    // now applies to null ("no news found") results — see the dedicated negative-cache
+    // TTL tests below.
+    const fetchImpl = fakePostsResponse([{ title: 'FOO surges', url: 'https://example.com/foo', publishedAt: hoursAgoIso(2) }]);
     let currentTime = FIXED_NOW;
     const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
 
@@ -116,6 +120,30 @@ describe('createCryptoPanicService — caching', () => {
 
     await service.getRecentNewsForSymbol('FOO');
     await service.getRecentNewsForSymbol('BAR');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('caches a "no news found" (null) result well past the ordinary TTL', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForSymbol('FOO');
+    currentTime += 90_001; // past the ordinary 90s TTL, but well within the 30-minute negative-cache TTL
+    await service.getRecentNewsForSymbol('FOO');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches a "no news found" (null) result once the negative-cache TTL has expired', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForSymbol('FOO');
+    currentTime += 30 * 60 * 1000 + 1; // past the 30-minute negative-cache TTL
+    await service.getRecentNewsForSymbol('FOO');
 
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });

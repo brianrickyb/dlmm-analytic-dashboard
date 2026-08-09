@@ -66,7 +66,7 @@ export function registerScreenerRoutes(
       const items: PumpWatchItem[] = await Promise.all(
         candidates.map(async (candidate) => ({
           ...candidate,
-          news: await cryptoPanicService.getRecentNewsForSymbol(candidate.symbol),
+          news: await cryptoPanicService.getRecentNewsForSymbol(candidate.symbol).catch(() => null),
         })),
       );
       return { items };

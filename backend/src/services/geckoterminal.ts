@@ -19,6 +19,7 @@ export interface GeckoTerminalServiceDeps {
 
 const DEFAULT_CACHE_TTL_MS = 90 * 1000;
 const NEW_POOLS_URL = 'https://api.geckoterminal.com/api/v2/networks/new_pools';
+const TRENDING_POOLS_URL = 'https://api.geckoterminal.com/api/v2/networks/trending_pools';
 const MAX_PAGES = 5;
 const MAX_POOL_AGE_MS = 72 * 60 * 60 * 1000;
 const MIN_PRICE_CHANGE_H6_PCT = 25;
@@ -90,10 +91,10 @@ function parsePool(raw: RawPool, nowMs: number): PumpCandidate | null {
   };
 }
 
-async function fetchPage(fetchImpl: typeof fetch, page: number): Promise<RawPool[]> {
+async function fetchPage(fetchImpl: typeof fetch, baseUrl: string, page: number): Promise<RawPool[]> {
   let response: Response;
   try {
-    response = await fetchImpl(`${NEW_POOLS_URL}?page=${page}`, {
+    response = await fetchImpl(`${baseUrl}?page=${page}`, {
       headers: { Accept: 'application/json;version=20230302' },
       signal: AbortSignal.timeout(8000),
     });
@@ -137,13 +138,30 @@ export function createGeckoTerminalService(deps: GeckoTerminalServiceDeps = {}) 
 
     const nowMs = now();
     const allRaw: RawPool[] = [];
+
+    // new_pools page 1 failing is a hard failure (propagates as GeckoTerminalUnavailableError),
+    // matching the pre-existing contract. trending_pools is supplementary: if it fails entirely
+    // (including its own page 1), we still return whatever new_pools already contributed instead
+    // of failing the whole request.
     for (let page = 1; page <= MAX_PAGES; page++) {
-      const pagePools = await fetchPage(fetchImpl, page);
+      const pagePools = await fetchPage(fetchImpl, NEW_POOLS_URL, page);
       if (pagePools.length === 0) break;
       allRaw.push(...pagePools);
     }
 
-    const candidates = allRaw
+    try {
+      for (let page = 1; page <= MAX_PAGES; page++) {
+        const pagePools = await fetchPage(fetchImpl, TRENDING_POOLS_URL, page);
+        if (pagePools.length === 0) break;
+        allRaw.push(...pagePools);
+      }
+    } catch (err) {
+      if (!(err instanceof GeckoTerminalUnavailableError)) throw err;
+    }
+
+    const dedupedRaw = [...new Map(allRaw.map((raw) => [raw.id, raw])).values()];
+
+    const candidates = dedupedRaw
       .map((raw) => parsePool(raw, nowMs))
       .filter((c): c is PumpCandidate => c !== null)
       .sort((a, b) => b.priceChangePct6h - a.priceChangePct6h)

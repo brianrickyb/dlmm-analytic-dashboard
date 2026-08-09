@@ -51,31 +51,39 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
   return (
     <div className="flex flex-wrap gap-2">
       {candidates.map((candidate) => (
-        <a
+        <div
           key={candidate.poolId}
-          href={candidate.poolUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="min-w-[180px] rounded-xl border px-3 py-2 text-sm hover:opacity-80"
+          className="min-w-[180px] rounded-xl border px-3 py-2 text-sm"
           style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
         >
-          <div className="flex items-center justify-between gap-2">
+          <a
+            href={candidate.poolUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between gap-2 hover:opacity-80"
+          >
             <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
               {candidate.symbol}
             </span>
             <span className="tabular-nums text-xs font-semibold" style={{ color: 'var(--status-good)' }}>
               +{formatPercent(candidate.priceChangePct6h)}
             </span>
-          </div>
+          </a>
           <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {candidate.network} · {formatUsdCompact(candidate.volumeUsd24h)} vol · {poolAge(candidate.poolCreatedAt)}
           </div>
           {candidate.news ? (
-            <div className="mt-1.5">
+            <a
+              href={candidate.news.url}
+              target="_blank"
+              rel="noreferrer"
+              title={candidate.news.title}
+              className="mt-1.5 inline-block hover:opacity-80"
+            >
               <Badge variant="accent">News</Badge>
-            </div>
+            </a>
           ) : null}
-        </a>
+        </div>
       ))}
     </div>
   );

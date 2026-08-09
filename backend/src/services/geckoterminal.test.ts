@@ -115,7 +115,9 @@ describe('createGeckoTerminalService — pagination', () => {
 
     await service.getPumpCandidates();
 
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    // 2 calls (page 1 with a pool, page 2 empty stops it) per endpoint, and both
+    // new_pools and trending_pools are paginated.
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
   });
 
   it("stops (not throws) when a later page fails, keeping earlier pages' candidates", async () => {
@@ -131,6 +133,26 @@ describe('createGeckoTerminalService — pagination', () => {
 
     expect(candidates).toHaveLength(1);
     expect(candidates[0].symbol).toBe('FOO');
+  });
+});
+
+describe('createGeckoTerminalService — dedupe across endpoints', () => {
+  it('collapses a pool with the same id returned by both new_pools and trending_pools into one candidate', async () => {
+    const pool = buildRawPool({ symbol: 'DUPE', address: 'ADDRDUPE' });
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      const pageMatch = url.match(/page=(\d+)/);
+      const pageNum = pageMatch ? Number(pageMatch[1]) : 1;
+      if (pageNum !== 1) return { ok: true, status: 200, json: async () => ({ data: [] }) } as Response;
+      // Both endpoints happen to surface the same pool id on their respective page 1.
+      return { ok: true, status: 200, json: async () => ({ data: [pool] }) } as Response;
+    });
+    const service = createGeckoTerminalService({ fetchImpl, now: () => FIXED_NOW });
+
+    const candidates = await service.getPumpCandidates();
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].poolId).toBe(pool.id);
   });
 });
 
@@ -160,7 +182,9 @@ describe('createGeckoTerminalService — caching', () => {
     currentTime += 30_000;
     await service.getPumpCandidates();
 
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    // 1 call per endpoint (page 1 empty stops pagination immediately) on the first,
+    // uncached fetch; the second call is served entirely from cache.
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
   it('re-fetches once the TTL has expired', async () => {
@@ -172,6 +196,7 @@ describe('createGeckoTerminalService — caching', () => {
     currentTime += 90_001;
     await service.getPumpCandidates();
 
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    // 2 endpoint calls per (uncached) getPumpCandidates() invocation, invoked twice.
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
   });
 });

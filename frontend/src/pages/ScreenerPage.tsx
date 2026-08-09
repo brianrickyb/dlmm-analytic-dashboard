@@ -85,9 +85,9 @@ export function ScreenerPage() {
         Screener
       </h1>
       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-        Two independent signals: current futures market positioning on major pairs, and coins
-        seeing a spike in search interest. Neither panel is investment advice — see the FAQ for
-        how to read each term.
+        Three independent signals: current futures market positioning on major pairs, coins
+        seeing a spike in search interest, and freshly created pools showing an unusual price
+        move. None of these panels is investment advice — see the FAQ for how to read each term.
       </p>
 
       <div className="space-y-2">
