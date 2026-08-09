@@ -19,17 +19,19 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
-export function AddLiquidityForm({ poolAddress }: { poolAddress: string }) {
+export function AddLiquidityForm() {
   const { connection } = useConnection();
   const { publicKey, signTransaction } = useWallet();
   const { bump } = usePositionsRefresh();
 
-  // This dashboard's Pools page uses sample data (see PoolListPage) — its
-  // poolAddress values aren't real on-chain addresses, so the field is
-  // editable here rather than a fixed prop, to let a real devnet DLMM pool
-  // address be tested against without needing a live Meteora-backed Pools
-  // list (out of scope for this feature).
-  const [poolAddressInput, setPoolAddressInput] = useState(poolAddress);
+  // This form only ever builds transactions against SOLANA_RPC_URL (devnet).
+  // The Pools page shows real Meteora pools, but those are mainnet
+  // addresses — never valid targets here. The two are intentionally
+  // decoupled: this field is manual/editable rather than pre-filled from
+  // whichever pool the user is viewing, since auto-filling a real-looking
+  // mainnet address would silently fail instead of the current honest
+  // "type in a devnet pool address" affordance.
+  const [poolAddressInput, setPoolAddressInput] = useState('');
   const [amountX, setAmountX] = useState('');
   const [amountY, setAmountY] = useState('');
   const [minBinId, setMinBinId] = useState('');
