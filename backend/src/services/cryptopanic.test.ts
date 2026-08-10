@@ -148,3 +148,131 @@ describe('createCryptoPanicService — caching', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('createCryptoPanicService — getRecentNewsForToken — no API key', () => {
+  it('returns an empty array without making a request', async () => {
+    const fetchImpl = vi.fn();
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: undefined });
+
+    const result = await service.getRecentNewsForToken('SOL');
+
+    expect(result).toEqual([]);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe('createCryptoPanicService — getRecentNewsForToken — limit and window', () => {
+  it('returns up to the default limit (3) of fresh articles within the default window (7 days)', async () => {
+    const fetchImpl = fakePostsResponse([
+      { title: 'Article 1', url: 'https://example.com/1', publishedAt: hoursAgoIso(1) },
+      { title: 'Article 2', url: 'https://example.com/2', publishedAt: hoursAgoIso(2) },
+      { title: 'Article 3', url: 'https://example.com/3', publishedAt: hoursAgoIso(3) },
+      { title: 'Article 4', url: 'https://example.com/4', publishedAt: hoursAgoIso(4) },
+    ]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    const result = await service.getRecentNewsForToken('SOL');
+
+    expect(result).toEqual([
+      { title: 'Article 1', url: 'https://example.com/1', publishedAt: hoursAgoIso(1) },
+      { title: 'Article 2', url: 'https://example.com/2', publishedAt: hoursAgoIso(2) },
+      { title: 'Article 3', url: 'https://example.com/3', publishedAt: hoursAgoIso(3) },
+    ]);
+  });
+
+  it('excludes articles older than the window (default 7 days = 168h)', async () => {
+    const fetchImpl = fakePostsResponse([
+      { title: 'Fresh', url: 'https://example.com/fresh', publishedAt: hoursAgoIso(1) },
+      { title: 'Stale', url: 'https://example.com/stale', publishedAt: hoursAgoIso(169) },
+    ]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    const result = await service.getRecentNewsForToken('SOL');
+
+    expect(result).toEqual([{ title: 'Fresh', url: 'https://example.com/fresh', publishedAt: hoursAgoIso(1) }]);
+  });
+
+  it('respects custom limit and windowHours options', async () => {
+    const fetchImpl = fakePostsResponse([
+      { title: 'Article 1', url: 'https://example.com/1', publishedAt: hoursAgoIso(1) },
+      { title: 'Article 2', url: 'https://example.com/2', publishedAt: hoursAgoIso(30) },
+    ]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    const result = await service.getRecentNewsForToken('SOL', { limit: 1, windowHours: 24 });
+
+    expect(result).toEqual([{ title: 'Article 1', url: 'https://example.com/1', publishedAt: hoursAgoIso(1) }]);
+  });
+
+  it('returns an empty array when there are no results', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    expect(await service.getRecentNewsForToken('SOL')).toEqual([]);
+  });
+});
+
+describe('createCryptoPanicService — getRecentNewsForToken — best-effort failure handling (never throws)', () => {
+  it('returns an empty array when the network request fails', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await expect(service.getRecentNewsForToken('SOL')).resolves.toEqual([]);
+  });
+
+  it('returns an empty array on a non-ok response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({}) } as Response);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await expect(service.getRecentNewsForToken('SOL')).resolves.toEqual([]);
+  });
+
+  it('returns an empty array when the response body is not valid JSON', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('bad json');
+      },
+    } as unknown as Response);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await expect(service.getRecentNewsForToken('SOL')).resolves.toEqual([]);
+  });
+});
+
+describe('createCryptoPanicService — getRecentNewsForToken — caching', () => {
+  it('uses a cache separate from getRecentNewsForSymbol', async () => {
+    const fetchImpl = fakePostsResponse([{ title: 'SOL surges', url: 'https://example.com/sol', publishedAt: hoursAgoIso(1) }]);
+    const service = createCryptoPanicService({ fetchImpl, now: () => FIXED_NOW, apiKey: 'test-key' });
+
+    await service.getRecentNewsForSymbol('SOL');
+    await service.getRecentNewsForToken('SOL');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('reuses the cached result per (symbol, limit, windowHours) within the TTL', async () => {
+    const fetchImpl = fakePostsResponse([{ title: 'SOL surges', url: 'https://example.com/sol', publishedAt: hoursAgoIso(1) }]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForToken('SOL');
+    currentTime += 30_000;
+    await service.getRecentNewsForToken('SOL');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('caches an empty-array result well past the ordinary TTL', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForToken('SOL');
+    currentTime += 90_001;
+    await service.getRecentNewsForToken('SOL');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+});
