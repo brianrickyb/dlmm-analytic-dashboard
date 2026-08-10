@@ -192,6 +192,32 @@ describe('createMeteoraService — getPoolHistory merge logic', () => {
     expect(snapshots).toEqual([]);
   });
 
+  it('excludes the current UTC day even when price, volume, AND TVL are all present for it', async () => {
+    const fetchImpl = fakeFetchHistory({
+      ohlcv: [
+        { timestamp_str: '2026-08-09T00:00:00+00:00', close: 10 },
+        { timestamp_str: '2026-08-10T00:00:00+00:00', close: 11 },
+      ],
+      volumeHistory: [
+        { timestamp_str: '2026-08-09T00:00:00+00:00', volume: 1000, fees: 5 },
+        { timestamp_str: '2026-08-10T00:00:00+00:00', volume: 0, fees: 0 },
+      ],
+    });
+    // TVL rows exist for both days, and volume/price also exist for both days —
+    // but 2026-08-10 is "today" per `now`, so it must still be excluded.
+    const supabaseAdmin = fakeSupabaseAdmin([
+      { pool_address: 'ADDR1', day: '2026-08-09', tvl_usd: 500_000 },
+      { pool_address: 'ADDR1', day: '2026-08-10', tvl_usd: 510_000 },
+    ]);
+    const service = createMeteoraService({ fetchImpl, now: () => Date.parse('2026-08-10T05:00:00Z'), supabaseAdmin });
+
+    const snapshots = await service.getPoolHistory('ADDR1', 90);
+
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0].snapshotAt).toBe('2026-08-09T00:00:00.000Z');
+    expect(snapshots.some((s) => s.snapshotAt.startsWith('2026-08-10'))).toBe(false);
+  });
+
   it('caches the merged result per address+days key', async () => {
     const fetchImpl = fakeFetchHistory({ ohlcv: [], volumeHistory: [] });
     let currentTime = Date.parse('2026-08-10T00:00:00Z');

@@ -40,6 +40,14 @@ export async function runSnapshotPoolTvl(deps: {
   return { succeeded, failed };
 }
 
+// This worker is meant to run once per day (any time is fine, it upserts by
+// UTC date so re-runs the same day are idempotent) via an external
+// scheduler — Railway Cron or Render Cron Job calling
+// `npm run snapshot:tvl` as a one-off command, NOT an in-process timer in
+// the API server (see this project's original architecture notes on why:
+// idempotency and horizontal-scaling safety). If this is never scheduled,
+// `pool_tvl_daily` stays empty and every pool's history/IL calculator shows
+// "not enough recorded history yet" forever.
 async function main() {
   const url = process.env.SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;

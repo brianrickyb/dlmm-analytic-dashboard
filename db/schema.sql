@@ -119,3 +119,5 @@ CREATE TABLE pool_tvl_daily (
   captured_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (pool_address, day)
 );
+
+ALTER TABLE pool_tvl_daily ENABLE ROW LEVEL SECURITY;

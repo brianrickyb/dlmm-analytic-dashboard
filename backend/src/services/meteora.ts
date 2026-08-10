@@ -164,10 +164,12 @@ interface DayPoint<T> {
   value: T;
 }
 
-async function fetchOhlcv(fetchImpl: typeof fetch, address: string, days: number): Promise<DayPoint<number>[]> {
+async function fetchOhlcv(fetchImpl: typeof fetch, address: string, days: number, now: () => number): Promise<DayPoint<number>[]> {
+  const endTime = Math.floor(now() / 1000);
+  const startTime = endTime - days * 24 * 60 * 60;
   let response: Response;
   try {
-    response = await fetchImpl(`${METEORA_BASE_URL}/pools/${address}/ohlcv?resolution=1d&limit=${days}`, {
+    response = await fetchImpl(`${METEORA_BASE_URL}/pools/${address}/ohlcv?resolution=1d&start_time=${startTime}&end_time=${endTime}`, {
       signal: AbortSignal.timeout(8000),
     });
   } catch (err) {
@@ -205,10 +207,12 @@ interface VolumeFeesDay {
   fees: number;
 }
 
-async function fetchVolumeHistory(fetchImpl: typeof fetch, address: string, days: number): Promise<DayPoint<VolumeFeesDay>[]> {
+async function fetchVolumeHistory(fetchImpl: typeof fetch, address: string, days: number, now: () => number): Promise<DayPoint<VolumeFeesDay>[]> {
+  const endTime = Math.floor(now() / 1000);
+  const startTime = endTime - days * 24 * 60 * 60;
   let response: Response;
   try {
-    response = await fetchImpl(`${METEORA_BASE_URL}/pools/${address}/volume/history?resolution=1d&limit=${days}`, {
+    response = await fetchImpl(`${METEORA_BASE_URL}/pools/${address}/volume/history?resolution=1d&start_time=${startTime}&end_time=${endTime}`, {
       signal: AbortSignal.timeout(8000),
     });
   } catch (err) {
@@ -305,8 +309,8 @@ export function createMeteoraService(deps: MeteoraServiceDeps = {}) {
     }
 
     const [ohlcv, volumeHistory, tvlRows] = await Promise.all([
-      fetchOhlcv(fetchImpl, address, days),
-      fetchVolumeHistory(fetchImpl, address, days),
+      fetchOhlcv(fetchImpl, address, days, now),
+      fetchVolumeHistory(fetchImpl, address, days, now),
       supabaseAdmin ? fetchTvlRows(supabaseAdmin, address, days, now) : Promise.resolve([]),
     ]);
 
@@ -314,7 +318,15 @@ export function createMeteoraService(deps: MeteoraServiceDeps = {}) {
     const volumeByDay = new Map(volumeHistory.map((p) => [p.day, p.value]));
     const tvlByDay = new Map(tvlRows.map((p) => [p.day, p.value]));
 
-    const coveredDays = [...priceByDay.keys()].filter((day) => volumeByDay.has(day) && tvlByDay.has(day)).sort();
+    // Meteora's volume/history bucket for the current UTC day is always zero
+    // (it only finalizes at day close) even though /ohlcv already has today's
+    // price and our TVL worker already wrote today's row — so "today" would
+    // otherwise pass the 3-source check with a fabricated $0 volume/fees.
+    // Exclude it; it becomes a real day once tomorrow's fetch runs.
+    const todayUtc = new Date(now()).toISOString().slice(0, 10);
+    const coveredDays = [...priceByDay.keys()]
+      .filter((day) => day < todayUtc && volumeByDay.has(day) && tvlByDay.has(day))
+      .sort();
 
     const snapshots: PoolSnapshot[] = coveredDays.map((day) => {
       const currentPrice = priceByDay.get(day)!;
