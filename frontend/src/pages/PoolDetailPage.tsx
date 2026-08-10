@@ -7,9 +7,10 @@ import { StatTile } from '../components/StatTile';
 import { Tooltip } from '../components/Tooltip';
 import { AddLiquidityForm } from '../components/AddLiquidityForm';
 import { PillButton } from '../components/PillButton';
-import { fetchPool, fetchPoolHistory, PoolNotFoundError } from '../lib/api/pools';
+import { RelatedNews } from '../components/RelatedNews';
+import { fetchPool, fetchPoolHistory, fetchPoolNews, PoolNotFoundError } from '../lib/api/pools';
 import { formatPercent, formatPrice, formatUsd, formatUsdCompact } from '../lib/format';
-import type { PoolSnapshot, PoolWithStats } from '../types/pool';
+import type { PoolSnapshot, PoolTokenNews, PoolWithStats } from '../types/pool';
 
 export function PoolDetailPage() {
   const { poolId } = useParams<{ poolId: string }>();
@@ -19,6 +20,10 @@ export function PoolDetailPage() {
   const [series, setSeries] = useState<PoolSnapshot[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [requestId, setRequestId] = useState(0);
+  const [newsStatus, setNewsStatus] = useState<'loading' | 'error' | 'ready'>('loading');
+  const [poolNews, setPoolNews] = useState<PoolTokenNews[]>([]);
+  const [newsErrorMessage, setNewsErrorMessage] = useState<string | undefined>(undefined);
+  const [newsRequestId, setNewsRequestId] = useState(0);
 
   useEffect(() => {
     if (!poolId) return;
@@ -46,6 +51,28 @@ export function PoolDetailPage() {
       cancelled = true;
     };
   }, [poolId, requestId]);
+
+  useEffect(() => {
+    if (!poolId) return;
+    let cancelled = false;
+    setNewsStatus('loading');
+
+    fetchPoolNews(poolId)
+      .then((result) => {
+        if (cancelled) return;
+        setPoolNews(result);
+        setNewsStatus('ready');
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setNewsErrorMessage(err instanceof Error ? err.message : 'Failed to load related news.');
+        setNewsStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [poolId, newsRequestId]);
 
   if (status === 'loading') {
     return <div className="h-64 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
@@ -126,6 +153,13 @@ export function PoolDetailPage() {
           <IlCalculator series={series} />
         </>
       )}
+
+      <RelatedNews
+        status={newsStatus}
+        tokens={poolNews}
+        errorMessage={newsErrorMessage}
+        onRetry={() => setNewsRequestId((n) => n + 1)}
+      />
 
       {connected ? (
         <AddLiquidityForm />
