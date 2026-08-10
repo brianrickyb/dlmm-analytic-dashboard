@@ -1,3 +1,5 @@
+import type { NewsMatch } from './screener';
+
 export type Strategy = 'Spot' | 'Curve' | 'BidAsk';
 
 export interface Token {
@@ -45,4 +47,9 @@ export interface PoolSnapshot {
   feeApr24h: number;
   activeBinId?: number | null;
   currentPrice: number;
+}
+
+export interface PoolTokenNews {
+  symbol: string;
+  articles: NewsMatch[];
 }

@@ -1,4 +1,4 @@
-import type { PoolSnapshot, PoolWithStats } from '../../types/pool';
+import type { PoolSnapshot, PoolTokenNews, PoolWithStats } from '../../types/pool';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
@@ -43,4 +43,18 @@ export async function fetchPoolHistory(poolAddress: string, days = 90): Promise<
   }
 
   return body.snapshots as PoolSnapshot[];
+}
+
+export async function fetchPoolNews(poolAddress: string): Promise<PoolTokenNews[]> {
+  const response = await fetch(new URL(`/api/pools/${poolAddress}/news`, API_BASE_URL).toString());
+  const body = await response.json();
+
+  if (response.status === 404) {
+    throw new PoolNotFoundError(typeof body?.error === 'string' ? body.error : 'Pool not found.');
+  }
+  if (!response.ok) {
+    throw new Error(typeof body?.error === 'string' ? body.error : 'Failed to load related news.');
+  }
+
+  return body.tokens as PoolTokenNews[];
 }
