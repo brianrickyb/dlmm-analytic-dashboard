@@ -8,3 +8,4 @@ dist-ssr/
 *.log
 npm-debug.log*
 .superpowers/
+.worktrees/
