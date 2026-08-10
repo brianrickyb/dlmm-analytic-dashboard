@@ -92,30 +92,38 @@ export function createCryptoPanicService(deps: CryptoPanicServiceDeps = {}) {
     }
 
     const result = await fetchTokenNews(symbol, limit, windowHours);
+    if (result === null) {
+      // Fetch/parse failure (network error, non-ok response, bad JSON, malformed payload) —
+      // NOT the same as "genuinely no matching articles". Cache under the short, ordinary TTL
+      // so a transient failure (e.g. a 429) gets retried soon instead of pinning "no coverage"
+      // on this token for the full 30-minute negative-cache window.
+      tokenCache.set(cacheKey, { expiresAt: now() + cacheTtlMs, data: [] });
+      return [];
+    }
     const ttl = result.length === 0 ? NEGATIVE_CACHE_TTL_MS : cacheTtlMs;
     tokenCache.set(cacheKey, { expiresAt: now() + ttl, data: result });
     return result;
   }
 
-  async function fetchTokenNews(symbol: string, limit: number, windowHours: number): Promise<NewsMatch[]> {
+  async function fetchTokenNews(symbol: string, limit: number, windowHours: number): Promise<NewsMatch[] | null> {
     let response: Response;
     try {
       const url = `${POSTS_URL}?auth_token=${encodeURIComponent(apiKey!)}&currencies=${encodeURIComponent(symbol)}`;
       response = await fetchImpl(url, { signal: AbortSignal.timeout(8000) });
     } catch {
-      return [];
+      return null;
     }
-    if (!response.ok) return [];
+    if (!response.ok) return null;
 
     let payload: unknown;
     try {
       payload = await response.json();
     } catch {
-      return [];
+      return null;
     }
 
     const results = (payload as { results?: unknown })?.results;
-    if (!Array.isArray(results)) return [];
+    if (!Array.isArray(results)) return null;
 
     const windowMs = windowHours * 60 * 60 * 1000;
     const matches: NewsMatch[] = [];

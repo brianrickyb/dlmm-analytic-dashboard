@@ -275,4 +275,40 @@ describe('createCryptoPanicService — getRecentNewsForToken — caching', () =>
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
+
+  it('re-fetches after a network error once the short ordinary TTL has elapsed, not the 30-minute negative-cache TTL', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForToken('SOL');
+    currentTime += 90_001; // past the short ordinary TTL, but well within the 30-minute negative-cache TTL
+    await service.getRecentNewsForToken('SOL');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-fetches after a non-ok response (e.g. 429) once the short ordinary TTL has elapsed, not the 30-minute negative-cache TTL', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({}) } as Response);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForToken('SOL');
+    currentTime += 90_001; // past the short ordinary TTL, but well within the 30-minute negative-cache TTL
+    await service.getRecentNewsForToken('SOL');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('still caches a genuinely empty results array for the full 30-minute negative-cache TTL (no regression)', async () => {
+    const fetchImpl = fakePostsResponse([]);
+    let currentTime = FIXED_NOW;
+    const service = createCryptoPanicService({ fetchImpl, now: () => currentTime, cacheTtlMs: 90_000, apiKey: 'test-key' });
+
+    await service.getRecentNewsForToken('SOL');
+    currentTime += 90_001; // past the short ordinary TTL, but still within the 30-minute negative-cache TTL
+    await service.getRecentNewsForToken('SOL');
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
 });

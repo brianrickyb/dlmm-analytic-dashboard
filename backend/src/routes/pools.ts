@@ -92,7 +92,7 @@ export function registerPoolsRoutes(app: FastifyInstance, deps: { meteoraService
       const tokens = await Promise.all(
         symbols.map(async (symbol) => ({
           symbol,
-          articles: await cryptoPanicService.getRecentNewsForToken(symbol),
+          articles: await cryptoPanicService.getRecentNewsForToken(symbol).catch(() => []),
         })),
       );
 
