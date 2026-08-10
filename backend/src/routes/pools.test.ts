@@ -7,6 +7,20 @@ function fakePool(poolAddress: string) {
   return { id: poolAddress, poolAddress, name: 'FOO-BAR', tokenX: {} as any, tokenY: {} as any, binStep: 20, baseFeeBps: 3, isActive: true, stats: { poolId: poolAddress, snapshotAt: '2026-08-10T00:00:00Z', tvlUsd: 1_000_000, volume24hUsd: 200_000, fees24hUsd: 100, feeApr24h: 36.5, currentPrice: 1.5 } };
 }
 
+function fakePoolWithTokens(poolAddress: string, tokenXSymbol: string, tokenYSymbol: string) {
+  return {
+    id: poolAddress,
+    poolAddress,
+    name: `${tokenXSymbol}-${tokenYSymbol}`,
+    tokenX: { mintAddress: 'x', symbol: tokenXSymbol, name: tokenXSymbol, decimals: 9 },
+    tokenY: { mintAddress: 'y', symbol: tokenYSymbol, name: tokenYSymbol, decimals: 6 },
+    binStep: 20,
+    baseFeeBps: 3,
+    isActive: true,
+    stats: { poolId: poolAddress, snapshotAt: '2026-08-10T00:00:00Z', tvlUsd: 1_000_000, volume24hUsd: 200_000, fees24hUsd: 100, feeApr24h: 36.5, currentPrice: 1.5 },
+  };
+}
+
 describe('GET /api/pools', () => {
   it('returns the curated pool list on success', async () => {
     const app = Fastify();
@@ -100,5 +114,70 @@ describe('GET /api/pools/:poolAddress/history', () => {
     const response = await app.inject({ method: 'GET', url: '/api/pools/NOPE/history' });
 
     expect(response.statusCode).toBe(404);
+  });
+});
+
+describe('GET /api/pools/:poolAddress/news', () => {
+  it('returns grouped articles for each non-stablecoin token', async () => {
+    const app = Fastify();
+    const pool = fakePoolWithTokens('A', 'SOL', 'JUP');
+    const solArticles = [{ title: 'SOL rallies', url: 'https://example.com/sol', publishedAt: '2026-08-09T00:00:00Z' }];
+    const jupArticles: { title: string; url: string; publishedAt: string }[] = [];
+    const cryptoPanicService = {
+      getRecentNewsForToken: vi.fn((symbol: string) => Promise.resolve(symbol === 'SOL' ? solArticles : jupArticles)),
+    };
+    const meteoraService = { getPools: vi.fn(), getPoolByAddress: vi.fn().mockResolvedValue(pool), getPoolHistory: vi.fn() };
+    registerPoolsRoutes(app, { meteoraService, cryptoPanicService });
+
+    const response = await app.inject({ method: 'GET', url: '/api/pools/A/news' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      tokens: [
+        { symbol: 'SOL', articles: solArticles },
+        { symbol: 'JUP', articles: jupArticles },
+      ],
+    });
+  });
+
+  it('skips a stablecoin token in the pool', async () => {
+    const app = Fastify();
+    const pool = fakePoolWithTokens('A', 'SOL', 'USDC');
+    const cryptoPanicService = { getRecentNewsForToken: vi.fn().mockResolvedValue([]) };
+    const meteoraService = { getPools: vi.fn(), getPoolByAddress: vi.fn().mockResolvedValue(pool), getPoolHistory: vi.fn() };
+    registerPoolsRoutes(app, { meteoraService, cryptoPanicService });
+
+    const response = await app.inject({ method: 'GET', url: '/api/pools/A/news' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ tokens: [{ symbol: 'SOL', articles: [] }] });
+    expect(cryptoPanicService.getRecentNewsForToken).toHaveBeenCalledTimes(1);
+    expect(cryptoPanicService.getRecentNewsForToken).toHaveBeenCalledWith('SOL');
+  });
+
+  it('returns an empty tokens array when both pool tokens are stablecoins', async () => {
+    const app = Fastify();
+    const pool = fakePoolWithTokens('A', 'USDC', 'USDT');
+    const cryptoPanicService = { getRecentNewsForToken: vi.fn() };
+    const meteoraService = { getPools: vi.fn(), getPoolByAddress: vi.fn().mockResolvedValue(pool), getPoolHistory: vi.fn() };
+    registerPoolsRoutes(app, { meteoraService, cryptoPanicService });
+
+    const response = await app.inject({ method: 'GET', url: '/api/pools/A/news' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ tokens: [] });
+    expect(cryptoPanicService.getRecentNewsForToken).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the pool is not found', async () => {
+    const app = Fastify();
+    const cryptoPanicService = { getRecentNewsForToken: vi.fn() };
+    const meteoraService = { getPools: vi.fn(), getPoolByAddress: vi.fn().mockResolvedValue(null), getPoolHistory: vi.fn() };
+    registerPoolsRoutes(app, { meteoraService, cryptoPanicService });
+
+    const response = await app.inject({ method: 'GET', url: '/api/pools/NOPE/news' });
+
+    expect(response.statusCode).toBe(404);
+    expect(cryptoPanicService.getRecentNewsForToken).not.toHaveBeenCalled();
   });
 });
