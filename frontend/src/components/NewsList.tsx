@@ -57,19 +57,22 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
 
   return (
     <ul className="space-y-1.5">
-      {posts.map((post) => (
-        <li key={post.id} className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-          <a href={post.url} target="_blank" rel="noreferrer" className="font-semibold hover:underline" style={{ color: 'var(--text-primary)' }}>
-            {post.title}
-          </a>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <Badge variant={SENTIMENT_BADGE[post.sentiment].variant}>{SENTIMENT_BADGE[post.sentiment].label}</Badge>
-            <span>{post.sourceTitle}</span>
-            <span>&middot;</span>
-            <span>{timeAgo(post.publishedAt)}</span>
-          </div>
-        </li>
-      ))}
+      {posts.map((post) => {
+        const badge = SENTIMENT_BADGE[post.sentiment] ?? SENTIMENT_BADGE.neutral;
+        return (
+          <li key={post.id} className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+            <a href={post.url} target="_blank" rel="noreferrer" className="font-semibold hover:underline" style={{ color: 'var(--text-primary)' }}>
+              {post.title}
+            </a>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+              <Badge variant={badge.variant}>{badge.label}</Badge>
+              <span>{post.sourceTitle}</span>
+              <span>&middot;</span>
+              <span>{timeAgo(post.publishedAt)}</span>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
