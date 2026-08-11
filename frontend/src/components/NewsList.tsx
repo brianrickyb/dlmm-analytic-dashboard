@@ -1,5 +1,12 @@
 import type { NewsPost } from '../types/news';
+import { Badge } from './Badge';
 import { PillButton } from './PillButton';
+
+const SENTIMENT_BADGE: Record<NewsPost['sentiment'], { variant: 'good' | 'critical' | 'neutral'; label: string }> = {
+  positive: { variant: 'good', label: 'Positive' },
+  negative: { variant: 'critical', label: 'Negative' },
+  neutral: { variant: 'neutral', label: 'Neutral' },
+};
 
 interface NewsListProps {
   status: 'loading' | 'error' | 'ready';
@@ -56,6 +63,7 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
             {post.title}
           </a>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <Badge variant={SENTIMENT_BADGE[post.sentiment].variant}>{SENTIMENT_BADGE[post.sentiment].label}</Badge>
             <span>{post.sourceTitle}</span>
             <span>&middot;</span>
             <span>{timeAgo(post.publishedAt)}</span>
