@@ -68,6 +68,11 @@ export function NewsPage() {
             This page aggregates several outlets (CoinDesk, Cointelegraph, The Block, Decrypt) so
             you're not relying on one outlet's bias or blind spots.
           </p>
+          <p>
+            The sentiment tag (Positive/Negative/Neutral) on each headline is a simple keyword
+            match against the title only — not the full article, and not AI analysis. Treat it
+            as a rough scan aid, not a signal.
+          </p>
         </div>
       </details>
       <NewsFilters currencies={currencies} onCurrenciesChange={setCurrencies} source={source} onSourceChange={setSource} />
