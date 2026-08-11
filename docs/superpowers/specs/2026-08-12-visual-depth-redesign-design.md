@@ -95,24 +95,54 @@ The hierarchy fix does **not** require touching `PoolTable.tsx`, `NewsList.tsx`,
 `RelatedNews.tsx`, `PumpWatch.tsx`, or `IlCalculator.tsx` — all of them already read
 `var(--surface-1)`/`var(--border)` for their card treatment, so retuning those tokens above
 already gives every one of them the warmer surface for free. The hierarchy distinction comes
-from changing **only** `StatTile.tsx`, the component used for every headline number
-(`PoolListPage`'s 3 overview tiles, `PoolDetailPage`'s 4 stat tiles):
+from changing **only** `StatTile.tsx`, the component used for every stat number
+(`PoolListPage`'s 3 overview tiles, `PoolDetailPage`'s 4 stat tiles) — but not every tile
+becomes a hero. The approved mockup highlights exactly **one** primary metric per row as a
+filled pill; the rest stay as bordered cards (now warmer per the retuned tokens, but otherwise
+unchanged). `StatTile` gains a `variant` prop to carry that distinction:
 
 ```tsx
-export function StatTile({ label, value, accent }: { label: ReactNode; value: string; accent?: string }) {
+export function StatTile({
+  label,
+  value,
+  accent,
+  variant = 'default',
+}: {
+  label: ReactNode;
+  value: string;
+  accent?: string;
+  variant?: 'default' | 'hero';
+}) {
+  if (variant === 'hero') {
+    return (
+      <div className="rounded-full px-4 py-3" style={{ background: 'var(--accent-bg)', color: accent ?? 'var(--accent)' }}>
+        <div className="text-xs opacity-80">{label}</div>
+        <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums">{value}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-full px-4 py-3" style={{ background: 'var(--accent-bg)', color: accent ?? 'var(--accent)' }}>
-      <div className="text-xs opacity-80">{label}</div>
-      <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums">{value}</div>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
+      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        {label}
+      </div>
+      <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums" style={{ color: accent ?? 'var(--text-primary)' }}>
+        {value}
+      </div>
     </div>
   );
 }
 ```
 
+`variant` defaults to `'default'` so every existing call site keeps its current look until
+explicitly opted in. Two call sites opt in to `variant="hero"` — the single most important
+number on each page: `PoolListPage`'s "Total TVL" tile, and `PoolDetailPage`'s "TVL" tile. Every
+other `StatTile` usage (24h Volume, Active Pools, Fees, Fee APR) is untouched — including
+`PoolDetailPage`'s existing `accent="var(--series-green)"` on the Fee APR tile, which keeps
+working exactly as it does today since `default` variant's `accent` handling is unchanged.
 This reuses `--accent-bg`/`--accent` — the exact tokens `Badge.tsx`'s `accent` variant already
-uses — rather than inventing new colors. The `accent` prop (already supported, used today by
-`PoolDetailPage`'s Fee APR tile with `var(--series-green)`) keeps working: it overrides the text
-color while the pill background stays `--accent-bg`.
+uses — rather than inventing new colors.
 
 ### Nav — side rail
 
