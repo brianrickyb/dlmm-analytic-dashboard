@@ -155,3 +155,21 @@ describe('createNewsService — currency keyword filter', () => {
     expect(posts).toEqual([expect.objectContaining({ title: 'Solana network upgrade announced' })]);
   });
 });
+
+describe('createNewsService — sentiment', () => {
+  it('includes a sentiment classification computed from the title', async () => {
+    const parser = fakeParser({
+      [coindesk.url]: {
+        items: [{ title: 'Bitcoin surges to new record high', link: 'https://a.example', pubDate: '2026-07-20T00:00:00Z' }],
+      },
+      [cointelegraph.url]: { items: [] },
+      [theblock.url]: { items: [] },
+      [decrypt.url]: { items: [] },
+    });
+    const service = createNewsService({ parser });
+
+    const posts = await service.fetchNews({});
+
+    expect(posts).toEqual([expect.objectContaining({ sentiment: 'positive' })]);
+  });
+});

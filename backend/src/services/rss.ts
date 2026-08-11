@@ -1,4 +1,5 @@
 import Parser from 'rss-parser';
+import { classifySentiment } from '../lib/sentiment.js';
 
 export interface NewsPost {
   id: string;
@@ -6,6 +7,7 @@ export interface NewsPost {
   url: string;
   sourceTitle: string;
   publishedAt: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
 }
 
 export interface NewsQuery {
@@ -80,13 +82,17 @@ export function createNewsService(deps: NewsServiceDeps = {}) {
 
   async function fetchOneFeed(feed: FeedSource): Promise<NewsPost[]> {
     const parsed = await parser.parseURL(feed.url);
-    return (parsed.items ?? []).map((item, index) => ({
-      id: item.guid ?? item.link ?? `${feed.key}-${index}`,
-      title: item.title ?? '(untitled)',
-      url: item.link ?? feed.url,
-      sourceTitle: feed.title,
-      publishedAt: item.pubDate ?? item.isoDate ?? new Date(0).toISOString(),
-    }));
+    return (parsed.items ?? []).map((item, index) => {
+      const title = item.title ?? '(untitled)';
+      return {
+        id: item.guid ?? item.link ?? `${feed.key}-${index}`,
+        title,
+        url: item.link ?? feed.url,
+        sourceTitle: feed.title,
+        publishedAt: item.pubDate ?? item.isoDate ?? new Date(0).toISOString(),
+        sentiment: classifySentiment(title),
+      };
+    });
   }
 
   async function getMergedFeed(source: string | undefined): Promise<NewsPost[]> {
