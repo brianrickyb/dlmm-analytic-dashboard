@@ -62,14 +62,12 @@ Update `body`'s `font-family` to `var(--font-sans)` (currently a hardcoded stack
 font overrides. Every heading, nav label, and body paragraph in the app already inherits
 `body`'s font via the cascade, so this one change propagates everywhere.
 
-**Numbers get `font-variant-numeric: tabular-nums`** wherever a component renders a price,
-TVL, volume, or percentage — this is a CSS property, not a typeface change, and it's what
-makes columns of numbers (the pool table, stat tiles) align instead of jittering with
-proportional figures. Apply it via a small reusable class rather than repeating the property
-inline: add `.tabular-nums { font-variant-numeric: tabular-nums; }` to `index.css` (Tailwind v4
-already ships a `tabular-nums` utility class that does exactly this — use Tailwind's built-in
-class directly in JSX rather than adding a custom one, since it's already available and this
-project already uses Tailwind utility classes throughout).
+**`StatTile` values get `font-variant-numeric: tabular-nums`** (Tailwind v4's built-in
+`tabular-nums` utility class, applied directly in JSX) so the hero and secondary numbers on the
+same page align on their digits instead of jittering with proportional figures. This is scoped
+to `StatTile` only, as part of its own change in the Card hierarchy section below — it is not a
+blanket change applied to every numeric value in the app. `PoolTable.tsx`'s numeric columns are
+out of scope for this pass (see Out of scope).
 
 ### Surface tone
 
@@ -182,6 +180,8 @@ scoped entirely inside `Layout.tsx`; no other component needs to know about it.
   not a landing page.
 - Collapsible/resizable sidebar, or a user preference to switch back to a top nav — the side
   rail is the only nav shell going forward.
+- `PoolTable.tsx`'s numeric column formatting (`tabular-nums` or otherwise) — not flagged by the
+  audit, not part of the mockup comparisons; a separate pass if it turns out to matter.
 
 ## Testing
 
