@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 
-type BadgeVariant = 'accent' | 'good' | 'critical' | 'warning';
+type BadgeVariant = 'accent' | 'good' | 'critical' | 'warning' | 'neutral';
 
 const VARIANT_STYLES: Record<BadgeVariant, { bg: string; color: string }> = {
   accent: { bg: 'var(--accent-bg)', color: 'var(--accent)' },
   good: { bg: 'rgba(12, 163, 12, 0.12)', color: 'var(--status-good)' },
   critical: { bg: 'rgba(208, 59, 59, 0.12)', color: 'var(--status-critical)' },
   warning: { bg: 'rgba(250, 178, 25, 0.12)', color: 'var(--status-warning)' },
+  neutral: { bg: 'var(--border)', color: 'var(--text-muted)' },
 };
 
 export function Badge({ variant = 'accent', children }: { variant?: BadgeVariant; children: ReactNode }) {
