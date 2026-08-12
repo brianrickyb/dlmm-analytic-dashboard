@@ -14,7 +14,7 @@ export function StatTile({
   if (variant === 'hero') {
     return (
       <div className="rounded-full px-4 py-3" style={{ background: 'var(--accent-bg)', color: accent ?? 'var(--accent)' }}>
-        <div className="text-xs opacity-80">{label}</div>
+        <div className="text-xs">{label}</div>
         <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums">{value}</div>
       </div>
     );

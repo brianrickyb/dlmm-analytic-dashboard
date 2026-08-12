@@ -64,13 +64,13 @@ export function WalletConnectButton() {
         {connecting ? 'Connecting...' : 'Connect Wallet'}
       </PillButton>
       {error ? (
-        <p className="absolute right-0 mt-1 whitespace-nowrap text-xs" style={{ color: 'var(--status-critical)' }}>
+        <p className="absolute bottom-full left-0 mb-1 whitespace-nowrap text-xs" style={{ color: 'var(--status-critical)' }}>
           {error}
         </p>
       ) : null}
       {pickerOpen ? (
         <div
-          className="absolute right-0 z-10 mt-1 rounded-xl border text-sm"
+          className="absolute bottom-full left-0 z-10 mb-1 rounded-xl border text-sm"
           style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
         >
           {wallets.map((w) => (
