@@ -38,6 +38,24 @@ def test_rsi_always_in_valid_range():
     assert (rsi <= 100).all()
 
 
+def test_rsi_is_100_for_all_gains_zero_losses():
+    all_up = pd.Series([100.0 + i for i in range(20)])
+    rsi = compute_rsi(all_up, period=14)
+    assert rsi.iloc[19] == pytest.approx(100.0)
+
+
+def test_rsi_is_0_for_all_losses_zero_gains():
+    all_down = pd.Series([120.0 - i for i in range(20)])
+    rsi = compute_rsi(all_down, period=14)
+    assert rsi.iloc[19] == pytest.approx(0.0)
+
+
+def test_rsi_is_50_for_no_price_movement():
+    flat = pd.Series([100.0] * 20)
+    rsi = compute_rsi(flat, period=14)
+    assert rsi.iloc[19] == pytest.approx(50.0)
+
+
 def test_ma_crossover_matches_known_computed_value():
     crossover = compute_ma_crossover(CLOSES, short=5, long=10)
     assert crossover.iloc[19] == pytest.approx(1.73, abs=0.001)
@@ -64,26 +82,26 @@ def test_segment_ids_increments_only_on_gap_over_five_days():
 
 
 def test_compute_features_resets_rolling_windows_at_a_gap():
+    # 12 pre-gap rows, an 11-day gap, 12 post-gap rows.
     dates = pd.Series(
-        list(pd.date_range("2024-01-01", periods=10, freq="D"))
-        + list(pd.date_range("2024-01-21", periods=8, freq="D"))
+        list(pd.date_range("2024-01-01", periods=12, freq="D"))
+        + list(pd.date_range("2024-01-23", periods=12, freq="D"))
     )
-    closes = pd.Series([
-        100.0, 101.0, 100.5, 102.0, 103.0, 102.5, 104.0, 105.0, 104.5, 106.0,
-        200.0, 201.0, 199.5, 202.0, 203.0, 201.5, 204.0, 205.0,
-    ])
-    df = pd.DataFrame({"Date": dates, "Close": closes})
+    pre_gap = [100.0, 101.0, 100.5, 102.0, 103.0, 102.5, 104.0, 105.0, 104.5, 106.0, 107.0, 106.5]
+    post_gap = [500.0, 501.0, 499.5, 502.0, 503.0, 501.5, 504.0, 505.0, 503.5, 506.0, 507.0, 505.5]
+    df = pd.DataFrame({"Date": dates, "Close": pd.Series(pre_gap + post_gap)})
 
     features = compute_features(df)
 
-    # A 5-day-window feature computed post-gap must not blend in pre-gap
-    # (Close ~100) prices with post-gap (Close ~200) prices.
-    ma_crossover_col = df.assign(seg=segment_ids(dates)).groupby("seg")["Close"].transform(
-        lambda s: s.rolling(5).mean()
-    )
-    assert ma_crossover_col.iloc[13] != ma_crossover_col.iloc[13]  # NaN: only 4 rows in new segment
-    assert ma_crossover_col.iloc[14] == pytest.approx(201.1, abs=0.001)  # first full window in new segment
+    # Row 12 is the FIRST post-gap row. A naive whole-series `close.shift(10)`
+    # (no gap-reset) would compute this using row 2's pre-gap Close (100.5),
+    # giving a spurious momentum_10 of 399.5. With correct gap-reset, there
+    # aren't 10 rows in the new segment yet, so it must be NaN.
+    assert pd.isna(features["momentum_10"].iloc[12])
+    # Row 22 is the first post-gap row with a full 10-row window *within the
+    # new segment* (rows 12-22) — its momentum_10 must be computed entirely
+    # from post-gap prices: 507.0 - 500.0 = 7.0.
+    assert features["momentum_10"].iloc[22] == pytest.approx(7.0, abs=0.001)
     assert "rsi_14" in features.columns
     assert "ma_crossover" in features.columns
-    assert "momentum_10" in features.columns
     assert "volatility_14" in features.columns

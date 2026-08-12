@@ -27,15 +27,23 @@ def segment_ids(dates: pd.Series, gap_days: int = GAP_THRESHOLD_DAYS) -> pd.Seri
 
 
 def compute_rsi(close: pd.Series, period: int = RSI_PERIOD) -> pd.Series:
-    """Wilder's-smoothing RSI. Returns 50 (neutral) wherever undefined."""
+    """Wilder's-smoothing RSI. Returns 50 (neutral) during warmup or when there's
+    no price movement at all; returns 100 when every move in the window was a
+    gain (zero losses), 0 when every move was a loss (zero gains)."""
     delta = close.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
     avg_gain = gain.ewm(alpha=1 / period, min_periods=period, adjust=False).mean()
     avg_loss = loss.ewm(alpha=1 / period, min_periods=period, adjust=False).mean()
-    rs = avg_gain / avg_loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
-    return rsi.fillna(50)
+
+    rsi = pd.Series(50.0, index=close.index)
+    defined = avg_gain.notna() & avg_loss.notna()
+    only_loss_zero = defined & (avg_loss == 0) & (avg_gain > 0)
+    normal = defined & (avg_loss > 0)
+
+    rsi[only_loss_zero] = 100.0
+    rsi[normal] = 100 - (100 / (1 + avg_gain[normal] / avg_loss[normal]))
+    return rsi
 
 
 def compute_ma_crossover(close: pd.Series, short: int = MA_SHORT_PERIOD, long: int = MA_LONG_PERIOD) -> pd.Series:
