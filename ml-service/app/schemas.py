@@ -14,8 +14,9 @@ class PricePoint(BaseModel):
 
 class DirectionRequest(BaseModel):
     prices: list[PricePoint] = Field(
+        min_length=1,
         description="Trailing daily OHLCV rows, ascending by date, at least 50 rows "
-        "(the longest feature warmup period)."
+        "(the longest feature warmup period).",
     )
 
 

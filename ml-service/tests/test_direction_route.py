@@ -40,3 +40,8 @@ def test_predict_direction_returns_422_on_insufficient_history():
         assert response.status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+def test_predict_direction_rejects_empty_prices_via_schema_validation():
+    response = client.post("/predict/direction", json={"prices": []})
+    assert response.status_code == 422
