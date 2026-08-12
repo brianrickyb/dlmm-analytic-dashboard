@@ -1,6 +1,6 @@
-# XAU/USD Direction Model — Evaluation Report
+# XAU/USD Direction Model â€” Evaluation Report
 
-Walk-forward evaluation (expanding window, yearly test blocks 2020-2024). Binary target: does Close[t+N] end up higher than Close[t]? These are real results from the actual training run below — not illustrative.
+Walk-forward evaluation (expanding window, yearly test blocks 2020-2024). Binary target: does Close[t+N] end up higher than Close[t]? These are real results from the actual training run below â€” not illustrative.
 
 ## Horizon: 1 day(s) ahead
 Mean accuracy across folds: 0.4996
@@ -37,4 +37,4 @@ Mean accuracy across folds: 0.5104
 
 ## Chosen horizon for serving: 5 day(s) (highest mean accuracy at 0.5104)
 
-**Limitations:** trained on daily OHLCV technical features only (no macro/news features), a single asset, walk-forward-evaluated on 5 yearly folds (2020-2024). A mean accuracy modestly above 0.5 does not imply the model is tradable — see the app's permanent disclaimer. This report states the real numbers from the run above; if they are close to a coin flip, that is the honest result, not a bug.
+**Limitations:** trained on daily OHLCV technical features only (no macro/news features), a single asset, walk-forward-evaluated on 5 yearly folds (2020-2024). A mean accuracy modestly above 0.5 does not imply the model is tradable â€” see the app's permanent disclaimer. This report states the real numbers from the run above; if they are close to a coin flip, that is the honest result, not a bug.

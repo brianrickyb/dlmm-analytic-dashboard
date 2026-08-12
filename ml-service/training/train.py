@@ -130,7 +130,7 @@ def main() -> None:
     df = compute_features(df)
 
     results = [evaluate_horizon(df, h) for h in HORIZONS]
-    REPORT_PATH.write_text(format_report(results))
+    REPORT_PATH.write_text(format_report(results), encoding="utf-8")
     print(f"Wrote {REPORT_PATH}")
 
     best = max(results, key=lambda r: r["mean_accuracy"])

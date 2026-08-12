@@ -36,3 +36,15 @@ print("Path to dataset files:", path)
 This requires a Kaggle account and API credentials (`kaggle.json` or `KAGGLE_USERNAME`+
 `KAGGLE_KEY`). Copy `XAU_1d_data.csv` from the downloaded path into `training/data/` (gitignored)
 before running `training/train.py`.
+
+## Training the model
+
+After placing the dataset (see above), run the walk-forward training pipeline from `ml-service/`:
+
+```bash
+uv run python -m training.train
+```
+
+(Not `uv run python training/train.py` directly — that fails with `ModuleNotFoundError: No
+module named 'training'` because direct script execution doesn't add the project root to
+`sys.path` the way `-m` module execution does.)
