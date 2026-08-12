@@ -1,0 +1,11 @@
+{
+  "feature_columns": [
+    "rsi_14",
+    "ma_crossover",
+    "momentum_10",
+    "volatility_14"
+  ],
+  "horizon_days": 5,
+  "trained_on_rows": 5426,
+  "training_data_max_date": "2026-01-30"
+}
