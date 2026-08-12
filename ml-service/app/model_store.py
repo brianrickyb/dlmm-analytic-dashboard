@@ -51,3 +51,15 @@ def get_direction_model() -> DirectionModel:
     if _direction_model is None:
         _direction_model = DirectionModel()
     return _direction_model
+
+
+from transformers import Pipeline, pipeline as hf_pipeline
+
+_sentiment_pipeline: Pipeline | None = None
+
+
+def get_sentiment_pipeline() -> Pipeline:
+    global _sentiment_pipeline
+    if _sentiment_pipeline is None:
+        _sentiment_pipeline = hf_pipeline("text-classification", model="ProsusAI/finbert")
+    return _sentiment_pipeline
