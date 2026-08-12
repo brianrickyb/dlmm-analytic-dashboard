@@ -1,6 +1,6 @@
 """Walk-forward evaluation and final training for the XAU/USD direction model.
 
-Run with: uv run python training/train.py
+Run with: uv run python -m training.train
 Writes: app/artifacts/direction_model.joblib, app/artifacts/direction_model.meta.json,
 training/REPORT.md
 """
@@ -36,11 +36,20 @@ def compute_direction_target(close: pd.Series, horizon_days: int) -> pd.Series:
     return target
 
 
-def generate_walk_forward_folds(dates: pd.Series, eval_years: list[int]) -> list[tuple[list[int], list[int]]]:
-    """Expanding-window folds: fold i trains on everything before eval_years[i], tests on that year."""
+def generate_walk_forward_folds(
+    dates: pd.Series, eval_years: list[int], embargo_days: int = 0
+) -> list[tuple[list[int], list[int]]]:
+    """Expanding-window folds: fold i trains on everything before eval_years[i],
+    tests on that year. `embargo_days` drops the last N rows of each fold's
+    training window (chronologically) — use this when the training labels look
+    `embargo_days` rows into the future, so a training row near the fold
+    boundary doesn't have a label derived from a Close price inside the test
+    period."""
     folds = []
     for year in eval_years:
         train_idx = dates[dates < pd.Timestamp(year=year, month=1, day=1)].index.tolist()
+        if embargo_days > 0:
+            train_idx = train_idx[:-embargo_days] if len(train_idx) > embargo_days else []
         test_idx = dates[
             (dates >= pd.Timestamp(year=year, month=1, day=1)) & (dates < pd.Timestamp(year=year + 1, month=1, day=1))
         ].index.tolist()
@@ -53,7 +62,7 @@ def evaluate_horizon(df: pd.DataFrame, horizon_days: int) -> dict:
     df["target"] = compute_direction_target(df["Close"], horizon_days)
     usable = df.dropna(subset=FEATURE_COLUMNS + ["target"]).reset_index(drop=True)
 
-    folds = generate_walk_forward_folds(usable["Date"], EVAL_YEARS)
+    folds = generate_walk_forward_folds(usable["Date"], EVAL_YEARS, embargo_days=horizon_days)
     fold_reports = []
     for year, (train_idx, test_idx) in zip(EVAL_YEARS, folds):
         if len(train_idx) == 0 or len(test_idx) == 0:

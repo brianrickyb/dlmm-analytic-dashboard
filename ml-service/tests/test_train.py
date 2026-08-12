@@ -22,3 +22,13 @@ def test_generate_walk_forward_folds_train_window_expands_and_never_sees_future(
     # fold N's train set must be a superset of fold N-1's train set (expanding window)
     for i in range(1, len(folds)):
         assert set(folds[i - 1][0]).issubset(set(folds[i][0]))
+
+
+def test_generate_walk_forward_folds_embargo_drops_trailing_train_rows():
+    dates = pd.Series(pd.date_range("2018-01-01", "2019-12-31", freq="D"))
+    folds_no_embargo = generate_walk_forward_folds(dates, eval_years=[2019])
+    folds_embargo = generate_walk_forward_folds(dates, eval_years=[2019], embargo_days=5)
+    train_no_embargo, _ = folds_no_embargo[0]
+    train_embargo, _ = folds_embargo[0]
+    assert len(train_embargo) == len(train_no_embargo) - 5
+    assert set(dates[train_embargo]).issubset(set(dates[train_no_embargo]))
