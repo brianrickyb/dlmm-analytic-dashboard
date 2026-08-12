@@ -1,0 +1,69 @@
+"""Feature engineering for the XAU/USD daily direction model.
+
+All rolling-window features reset at any gap of more than 5 calendar days
+between consecutive rows (see `segment_ids`) — the 2004-2026 daily dataset
+has two such gaps (33 days ending 2025-10-15, 9 days ending 2026-01-22; see
+docs/superpowers/specs/2026-08-13-xau-market-signal-design.md), and a
+rolling indicator must not silently blend pre-gap and post-gap prices as if
+they were consecutive trading days.
+"""
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+RSI_PERIOD = 14
+MA_SHORT_PERIOD = 10
+MA_LONG_PERIOD = 50
+MOMENTUM_PERIOD = 10
+VOLATILITY_PERIOD = 14
+GAP_THRESHOLD_DAYS = 5
+
+
+def segment_ids(dates: pd.Series, gap_days: int = GAP_THRESHOLD_DAYS) -> pd.Series:
+    """Assigns an incrementing segment id, incrementing at every gap > gap_days."""
+    gaps = dates.diff().dt.days
+    return (gaps > gap_days).cumsum()
+
+
+def compute_rsi(close: pd.Series, period: int = RSI_PERIOD) -> pd.Series:
+    """Wilder's-smoothing RSI. Returns 50 (neutral) wherever undefined."""
+    delta = close.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1 / period, min_periods=period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1 / period, min_periods=period, adjust=False).mean()
+    rs = avg_gain / avg_loss.replace(0, np.nan)
+    rsi = 100 - (100 / (1 + rs))
+    return rsi.fillna(50)
+
+
+def compute_ma_crossover(close: pd.Series, short: int = MA_SHORT_PERIOD, long: int = MA_LONG_PERIOD) -> pd.Series:
+    """Short moving average minus long moving average."""
+    return close.rolling(short).mean() - close.rolling(long).mean()
+
+
+def compute_momentum(close: pd.Series, period: int = MOMENTUM_PERIOD) -> pd.Series:
+    return close - close.shift(period)
+
+
+def compute_volatility(close: pd.Series, period: int = VOLATILITY_PERIOD) -> pd.Series:
+    """Rolling standard deviation of daily log returns."""
+    log_returns = np.log(close / close.shift(1))
+    return log_returns.rolling(period).std()
+
+
+def compute_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Adds rsi_14, ma_crossover, momentum_10, volatility_14 columns to df.
+
+    `df` must have `Date` (datetime64) and `Close` (float) columns, sorted
+    ascending by Date. Rolling features reset at each gap > 5 days (see
+    `segment_ids`) so they never blend pre-gap and post-gap prices.
+    """
+    seg = segment_ids(df["Date"])
+    out = df.copy()
+    out["rsi_14"] = out.groupby(seg)["Close"].transform(lambda s: compute_rsi(s))
+    out["ma_crossover"] = out.groupby(seg)["Close"].transform(lambda s: compute_ma_crossover(s))
+    out["momentum_10"] = out.groupby(seg)["Close"].transform(lambda s: compute_momentum(s))
+    out["volatility_14"] = out.groupby(seg)["Close"].transform(lambda s: compute_volatility(s))
+    return out
