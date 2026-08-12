@@ -2,8 +2,9 @@
 
 :root {
   color-scheme: light;
-  --surface-1: #ffffff;
-  --surface-page: #fafaf9;
+  --font-sans: 'Geist Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --surface-1: #fdfbf8;
+  --surface-page: #f7f5f1;
   --text-primary: #18181b;
   --text-secondary: #3f3f46;
   --text-muted: #71717a;
@@ -83,5 +84,5 @@ body {
   margin: 0;
   background: var(--surface-page);
   color: var(--text-primary);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }
