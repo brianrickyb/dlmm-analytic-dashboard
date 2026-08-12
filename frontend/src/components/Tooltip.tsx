@@ -65,7 +65,7 @@ export function Tooltip({ termKey, children, interactive = true }: TooltipProps)
       <span
         ref={triggerRef}
         className="cursor-help border-b border-dotted"
-        style={{ borderColor: 'var(--text-muted)' }}
+        style={{ borderColor: 'color-mix(in oklab, currentColor 55%, transparent)' }}
         tabIndex={interactive ? 0 : undefined}
         aria-describedby={open ? id : undefined}
         onMouseEnter={show}
