@@ -118,7 +118,7 @@ export function PoolDetailPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatTile label={<Tooltip termKey="tvl">TVL</Tooltip>} value={formatUsdCompact(stats.tvlUsd)} />
+        <StatTile label={<Tooltip termKey="tvl">TVL</Tooltip>} value={formatUsdCompact(stats.tvlUsd)} variant="hero" />
         <StatTile label="Volume (24h)" value={formatUsdCompact(stats.volume24hUsd)} />
         <StatTile label="Fees (24h)" value={formatUsd(stats.fees24hUsd)} />
         <StatTile

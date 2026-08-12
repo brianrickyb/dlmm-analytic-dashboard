@@ -55,7 +55,11 @@ export function PoolListPage() {
       ) : (
         <>
           <div className="grid grid-cols-3 gap-4">
-            <StatTile label="Total TVL" value={formatUsdCompact(pools.reduce((sum, p) => sum + p.stats.tvlUsd, 0))} />
+            <StatTile
+              label="Total TVL"
+              value={formatUsdCompact(pools.reduce((sum, p) => sum + p.stats.tvlUsd, 0))}
+              variant="hero"
+            />
             <StatTile label="24h Volume" value={formatUsdCompact(pools.reduce((sum, p) => sum + p.stats.volume24hUsd, 0))} />
             <StatTile label="Active Pools" value={String(pools.length)} />
           </div>
