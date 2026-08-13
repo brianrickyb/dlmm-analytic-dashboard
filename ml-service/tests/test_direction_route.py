@@ -7,16 +7,20 @@ from app.model_store import get_direction_model
 class FakeDirectionModel:
     feature_columns = ["rsi_14", "ma_crossover", "momentum_10", "volatility_14"]
 
-    def predict(self, prices: list[dict]) -> tuple[str, float]:
+    def predict(self, prices: list[dict]) -> tuple[str, float, dict[str, float]]:
         if len(prices) < 3:
             raise ValueError("not enough history")
-        return "bullish", 0.73
+        return (
+            "bullish",
+            0.73,
+            {"rsi_14": 61.2, "ma_crossover": 12.5, "momentum_10": 8.4, "volatility_14": 0.021},
+        )
 
 
 client = TestClient(app)
 
 
-def test_predict_direction_returns_bullish_with_confidence():
+def test_predict_direction_returns_bullish_with_confidence_and_features():
     app.dependency_overrides[get_direction_model] = lambda: FakeDirectionModel()
     try:
         payload = {
@@ -28,7 +32,14 @@ def test_predict_direction_returns_bullish_with_confidence():
         }
         response = client.post("/predict/direction", json=payload)
         assert response.status_code == 200
-        assert response.json() == {"direction": "bullish", "confidence": 0.73}
+        assert response.json() == {
+            "direction": "bullish",
+            "confidence": 0.73,
+            "rsi_14": 61.2,
+            "ma_crossover": 12.5,
+            "momentum_10": 8.4,
+            "volatility_14": 0.021,
+        }
     finally:
         app.dependency_overrides.clear()
 

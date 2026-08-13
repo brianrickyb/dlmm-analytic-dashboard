@@ -26,6 +26,10 @@ class DirectionRequest(BaseModel):
 class DirectionResponse(BaseModel):
     direction: Literal["bullish", "bearish"]
     confidence: float
+    rsi_14: float
+    ma_crossover: float
+    momentum_10: float
+    volatility_14: float
 
 
 class SentimentRequest(BaseModel):
