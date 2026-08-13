@@ -99,8 +99,8 @@ export function AddLiquidityForm() {
   const busy = state === 'building' || state === 'awaiting-signature' || state === 'submitting' || state === 'confirming';
 
   return (
-    <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+    <div className="space-y-3 rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+      <h2 className="text-sm font-bold" style={{ color: 'var(--text)' }}>
         Add Liquidity (devnet)
       </h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
@@ -111,7 +111,7 @@ export function AddLiquidityForm() {
           value={poolAddressInput}
           onChange={(e) => setPoolAddressInput(e.target.value)}
           className="col-span-2 rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
         />
         <input
           type="number"
@@ -122,7 +122,7 @@ export function AddLiquidityForm() {
           value={amountX}
           onChange={(e) => setAmountX(e.target.value)}
           className="rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
         />
         <input
           type="number"
@@ -133,7 +133,7 @@ export function AddLiquidityForm() {
           value={amountY}
           onChange={(e) => setAmountY(e.target.value)}
           className="rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
         />
         <input
           type="number"
@@ -142,7 +142,7 @@ export function AddLiquidityForm() {
           value={minBinId}
           onChange={(e) => setMinBinId(e.target.value)}
           className="rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
         />
         <input
           type="number"
@@ -151,7 +151,7 @@ export function AddLiquidityForm() {
           value={maxBinId}
           onChange={(e) => setMaxBinId(e.target.value)}
           className="rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
         />
         <PillButton type="submit" variant="solid" disabled={busy} className="col-span-2 text-sm">
           {busy ? `${state}...` : 'Add Liquidity'}
@@ -160,7 +160,7 @@ export function AddLiquidityForm() {
 
       {state === 'error' ? (
         <div className="space-y-2">
-          <p className="text-xs" style={{ color: 'var(--status-critical)' }}>
+          <p className="text-xs" style={{ color: 'var(--red)' }}>
             {errorMessage}
           </p>
           <PillButton onClick={runFlow} disabled={busy} className="text-xs">
@@ -170,9 +170,9 @@ export function AddLiquidityForm() {
       ) : null}
 
       {state === 'success' && signature ? (
-        <p className="text-xs" style={{ color: 'var(--status-good)' }}>
+        <p className="text-xs" style={{ color: 'var(--green)' }}>
           Confirmed —{' '}
-          <a href={`https://solscan.io/tx/${signature}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>
+          <a href={`https://solscan.io/tx/${signature}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--green)' }}>
             view on Solscan
           </a>
         </p>

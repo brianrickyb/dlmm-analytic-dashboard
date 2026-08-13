@@ -94,8 +94,8 @@ export function Tooltip({ termKey, children, interactive = true }: TooltipProps)
                 top: placement.flip ? placement.top + 8 : placement.top - 8,
                 left: placement.left,
                 borderColor: 'var(--border)',
-                background: 'var(--surface-1)',
-                color: 'var(--text-secondary)',
+                background: 'var(--card2)',
+                color: 'var(--text)',
               }}
             >
               {entry.shortDefinition}
