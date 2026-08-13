@@ -12,7 +12,7 @@ function fakeParser(byUrl: Record<string, { items: { title?: string; link?: stri
   };
 }
 
-const [coindesk, cointelegraph, theblock, decrypt] = FEED_SOURCES;
+const [coindesk, cointelegraph, theblock, decrypt, fxstreet, investinglive] = FEED_SOURCES;
 
 describe('createNewsService — merge, dedupe, sort', () => {
   it('merges items from all feeds, dedupes by URL, and sorts newest-first', async () => {
@@ -76,6 +76,8 @@ describe('createNewsService — caching', () => {
       [cointelegraph.url]: { items: [] },
       [theblock.url]: { items: [] },
       [decrypt.url]: { items: [] },
+      [fxstreet.url]: { items: [] },
+      [investinglive.url]: { items: [] },
     });
     let currentTime = 1_000_000;
     const service = createNewsService({ parser, now: () => currentTime, cacheTtlMs: 60_000 });
@@ -84,7 +86,7 @@ describe('createNewsService — caching', () => {
     currentTime += 30_000;
     await service.fetchNews({});
 
-    expect(parser.parseURL).toHaveBeenCalledTimes(4); // one call per feed, only on the first fetchNews
+    expect(parser.parseURL).toHaveBeenCalledTimes(6); // one call per feed, only on the first fetchNews
   });
 
   it('re-fetches once the TTL has expired', async () => {
@@ -93,6 +95,8 @@ describe('createNewsService — caching', () => {
       [cointelegraph.url]: { items: [] },
       [theblock.url]: { items: [] },
       [decrypt.url]: { items: [] },
+      [fxstreet.url]: { items: [] },
+      [investinglive.url]: { items: [] },
     });
     let currentTime = 1_000_000;
     const service = createNewsService({ parser, now: () => currentTime, cacheTtlMs: 60_000 });
@@ -101,7 +105,7 @@ describe('createNewsService — caching', () => {
     currentTime += 60_001;
     await service.fetchNews({});
 
-    expect(parser.parseURL).toHaveBeenCalledTimes(8); // 4 feeds x 2 fetches
+    expect(parser.parseURL).toHaveBeenCalledTimes(12); // 6 feeds x 2 fetches
   });
 
   it('does not re-fetch when only the currencies filter changes', async () => {
@@ -110,13 +114,15 @@ describe('createNewsService — caching', () => {
       [cointelegraph.url]: { items: [] },
       [theblock.url]: { items: [] },
       [decrypt.url]: { items: [] },
+      [fxstreet.url]: { items: [] },
+      [investinglive.url]: { items: [] },
     });
     const service = createNewsService({ parser });
 
     await service.fetchNews({});
     await service.fetchNews({ currencies: 'SOL' });
 
-    expect(parser.parseURL).toHaveBeenCalledTimes(4);
+    expect(parser.parseURL).toHaveBeenCalledTimes(6);
   });
 });
 
@@ -171,5 +177,28 @@ describe('createNewsService — sentiment', () => {
     const posts = await service.fetchNews({});
 
     expect(posts).toEqual([expect.objectContaining({ sentiment: 'positive' })]);
+  });
+});
+
+describe('createNewsService — XAU currency alias', () => {
+  it('matches "XAU" via the word "gold" in the title', async () => {
+    const parser = fakeParser({
+      [coindesk.url]: {
+        items: [
+          { title: 'Gold prices climb as investors seek safe haven', link: 'https://a.example', pubDate: '2026-08-12T00:00:00Z' },
+          { title: 'Unrelated market roundup', link: 'https://b.example', pubDate: '2026-08-12T00:00:00Z' },
+        ],
+      },
+      [cointelegraph.url]: { items: [] },
+      [theblock.url]: { items: [] },
+      [decrypt.url]: { items: [] },
+      [fxstreet.url]: { items: [] },
+      [investinglive.url]: { items: [] },
+    });
+    const service = createNewsService({ parser });
+
+    const posts = await service.fetchNews({ currencies: 'XAU' });
+
+    expect(posts).toEqual([expect.objectContaining({ title: 'Gold prices climb as investors seek safe haven' })]);
   });
 });

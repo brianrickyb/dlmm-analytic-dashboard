@@ -28,6 +28,8 @@ export const FEED_SOURCES: FeedSource[] = [
   { key: 'cointelegraph', title: 'Cointelegraph', url: 'https://cointelegraph.com/rss' },
   { key: 'theblock', title: 'The Block', url: 'https://www.theblock.co/rss.xml' },
   { key: 'decrypt', title: 'Decrypt', url: 'https://decrypt.co/feed' },
+  { key: 'fxstreet', title: 'FXStreet', url: 'https://www.fxstreet.com/rss/news' },
+  { key: 'investinglive', title: 'InvestingLive', url: 'https://investinglive.com/feed/news' },
 ];
 
 /**
@@ -46,6 +48,7 @@ const CURRENCY_ALIASES: Record<string, string[]> = {
   JTO: ['jito'],
   WIF: ['dogwifhat', '$wif'],
   PYTH: ['pyth network', 'pyth'],
+  XAU: ['gold', 'xau', 'bullion'],
 };
 
 interface RssParserLike {
