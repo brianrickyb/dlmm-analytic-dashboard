@@ -67,6 +67,7 @@ export function createAlphaVantageService(deps: AlphaVantageServiceDeps = {}) {
 
     const snapshots: GoldSnapshot[] = [];
     for (const raw of data) {
+      if (raw === null || typeof raw !== 'object') continue;
       const item = raw as Record<string, unknown>;
       const date = item.date;
       const value = Number(item.value);

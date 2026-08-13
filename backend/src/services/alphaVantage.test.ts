@@ -46,6 +46,33 @@ describe('createAlphaVantageService — success', () => {
 
     expect(result).toEqual([{ date: '2026-02-01', value: 4900.5 }]);
   });
+
+  it('skips null and non-object entries in the data array', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        name: 'Gold',
+        interval: 'daily',
+        unit: 'dollars',
+        data: [
+          { date: '2026-02-01', value: '4900.50' },
+          null,
+          'invalid',
+          123,
+          { date: '2026-02-02', value: '4915.25' },
+        ],
+      }),
+    } as Response);
+    const service = createAlphaVantageService({ fetchImpl, apiKey: 'test-key' });
+
+    const result = await service.getDailyHistory();
+
+    expect(result).toEqual([
+      { date: '2026-02-01', value: 4900.5 },
+      { date: '2026-02-02', value: 4915.25 },
+    ]);
+  });
 });
 
 describe('createAlphaVantageService — failure handling', () => {
