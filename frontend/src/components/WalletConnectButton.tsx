@@ -60,9 +60,30 @@ export function WalletConnectButton() {
 
   if (connected && publicKey) {
     return (
-      <PillButton onClick={() => disconnect()} className="text-xs">
-        {shortenAddress(publicKey.toBase58())}
-      </PillButton>
+      <div
+        className="flex items-center gap-2 rounded-lg px-3 py-2"
+        style={{ background: 'var(--green-subtle)', border: '1px solid var(--border)' }}
+      >
+        <div
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md"
+          style={{ background: 'rgba(0,212,126,0.13)', border: '1px solid rgba(0,212,126,0.2)' }}
+        >
+          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth={2}>
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[9px]" style={{ color: 'var(--muted)' }}>CONNECTED</div>
+          <button
+            type="button"
+            onClick={() => disconnect()}
+            className="truncate text-[11px]"
+            style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}
+          >
+            {shortenAddress(publicKey.toBase58())}
+          </button>
+        </div>
+      </div>
     );
   }
 
