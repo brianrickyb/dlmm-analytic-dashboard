@@ -137,6 +137,28 @@ describe('createFredService — failure handling', () => {
   });
 });
 
+describe('createFredService — all-null summary caching', () => {
+  it('caches an all-null summary for the short TTL only, retrying after it expires', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    let currentTime = 1_000_000;
+    const service = createFredService({ fetchImpl, apiKey: 'test-key', now: () => currentTime, cacheTtlMs: 6 * 60 * 60 * 1000 });
+
+    const first = await service.getSummary();
+    expect(first).toEqual({ fedFundsRate: null, realYield10y: null, cpi: null, dollarIndex: null });
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+
+    // +1min: still within the 5min all-null TTL -- no new fetches.
+    currentTime += 60 * 1000;
+    await service.getSummary();
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+
+    // +6min total: past the 5min all-null TTL -- fetches again.
+    currentTime += 5 * 60 * 1000;
+    await service.getSummary();
+    expect(fetchImpl).toHaveBeenCalledTimes(8);
+  });
+});
+
 describe('createFredService — caching', () => {
   it('reuses the cached summary within the TTL', async () => {
     const fetchImpl = fredResponseFor({

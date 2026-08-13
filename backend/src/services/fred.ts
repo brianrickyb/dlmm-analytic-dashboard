@@ -28,6 +28,10 @@ const SERIES = {
 } as const;
 
 const DEFAULT_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h -- matches the series' own daily/monthly cadence
+// If every series rejected (e.g. a transient FRED outage), don't cache that all-null result for
+// the full success TTL -- a 30s blip would otherwise blank the fundamentals panel for 6h with no
+// retry. Cache it for much less time so the next request tries again soon.
+const ALL_NULL_CACHE_TTL_MS = 5 * 60 * 1000; // 5min
 
 async function fetchLatestObservation(
   fetchImpl: typeof fetch,
@@ -99,7 +103,8 @@ export function createFredService(deps: FredServiceDeps = {}) {
     const dollarIndex = results[3].status === 'fulfilled' ? results[3].value : null;
 
     const summary: FredSummary = { fedFundsRate, realYield10y, cpi, dollarIndex };
-    cache = { expiresAt: now() + cacheTtlMs, data: summary };
+    const allNull = fedFundsRate === null && realYield10y === null && cpi === null && dollarIndex === null;
+    cache = { expiresAt: now() + (allNull ? ALL_NULL_CACHE_TTL_MS : cacheTtlMs), data: summary };
     return summary;
   }
 

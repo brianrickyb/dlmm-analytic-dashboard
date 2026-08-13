@@ -100,6 +100,30 @@ describe('createAlphaVantageService — failure handling', () => {
 
     await expect(service.getDailyHistory()).rejects.toBeInstanceOf(AlphaVantageUnavailableError);
   });
+
+  it('caches a terminal failure and rethrows without re-hitting the network within the failure TTL', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    let currentTime = 1_000_000;
+    const service = createAlphaVantageService({ fetchImpl, apiKey: 'test-key', now: () => currentTime });
+
+    await expect(service.getDailyHistory()).rejects.toBeInstanceOf(AlphaVantageUnavailableError);
+    currentTime += 30 * 60 * 1000; // +30min, within the 1h failure TTL
+    await expect(service.getDailyHistory()).rejects.toBeInstanceOf(AlphaVantageUnavailableError);
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches once the failure TTL has expired', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    let currentTime = 1_000_000;
+    const service = createAlphaVantageService({ fetchImpl, apiKey: 'test-key', now: () => currentTime });
+
+    await expect(service.getDailyHistory()).rejects.toBeInstanceOf(AlphaVantageUnavailableError);
+    currentTime += 60 * 60 * 1000 + 1; // just past the 1h failure TTL
+    await expect(service.getDailyHistory()).rejects.toBeInstanceOf(AlphaVantageUnavailableError);
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('createAlphaVantageService — caching', () => {

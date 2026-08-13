@@ -26,57 +26,71 @@ const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
 const GOLD_FUNCTION = 'GOLD';
 
 const DAILY_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // free tier is 25 req/day -- cache hard
+// Terminal failures (e.g. a premium-only rejection) are cached too, but for much less time than
+// a success -- otherwise a real key hitting a wall on every call could burn the 25-req/day quota
+// rapidly, since nothing was ever being cached on the failure path.
+const FAILURE_CACHE_TTL_MS = 60 * 60 * 1000; // 1h
+
+type CacheEntry = { expiresAt: number; data: GoldSnapshot[]; failed?: false } | { expiresAt: number; data: null; failed: true };
 
 export function createAlphaVantageService(deps: AlphaVantageServiceDeps = {}) {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
   const apiKey = deps.apiKey ?? process.env.ALPHA_VANTAGE_API_KEY;
 
-  let cache: { expiresAt: number; data: GoldSnapshot[] } | null = null;
+  let cache: CacheEntry | null = null;
 
   async function getDailyHistory(): Promise<GoldSnapshot[]> {
     if (!apiKey) {
       throw new AlphaVantageUnavailableError('ALPHA_VANTAGE_API_KEY is not configured');
     }
     if (cache && cache.expiresAt > now()) {
+      if (cache.failed) {
+        throw new AlphaVantageUnavailableError('Alpha Vantage recently failed and is cached as unavailable');
+      }
       return cache.data;
     }
 
-    const params = new URLSearchParams({ function: GOLD_FUNCTION, interval: 'daily', apikey: apiKey });
-    let response: Response;
     try {
-      response = await fetchImpl(`${ALPHA_VANTAGE_BASE_URL}?${params}`, { signal: AbortSignal.timeout(8000) });
+      const params = new URLSearchParams({ function: GOLD_FUNCTION, interval: 'daily', apikey: apiKey });
+      let response: Response;
+      try {
+        response = await fetchImpl(`${ALPHA_VANTAGE_BASE_URL}?${params}`, { signal: AbortSignal.timeout(8000) });
+      } catch (err) {
+        throw new AlphaVantageUnavailableError('Failed to reach Alpha Vantage', { cause: err });
+      }
+      if (!response.ok) {
+        throw new AlphaVantageUnavailableError(`Alpha Vantage returned status ${response.status}`);
+      }
+
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch (err) {
+        throw new AlphaVantageUnavailableError('Alpha Vantage response was not valid JSON', { cause: err });
+      }
+
+      const data = (payload as { data?: unknown })?.data;
+      if (!Array.isArray(data)) {
+        throw new AlphaVantageUnavailableError('Alpha Vantage response missing expected data field');
+      }
+
+      const snapshots: GoldSnapshot[] = [];
+      for (const raw of data) {
+        if (raw === null || typeof raw !== 'object') continue;
+        const item = raw as Record<string, unknown>;
+        const date = item.date;
+        const value = Number(item.value);
+        if (typeof date !== 'string' || Number.isNaN(value)) continue;
+        snapshots.push({ date, value });
+      }
+
+      cache = { expiresAt: now() + DAILY_CACHE_TTL_MS, data: snapshots };
+      return snapshots;
     } catch (err) {
-      throw new AlphaVantageUnavailableError('Failed to reach Alpha Vantage', { cause: err });
+      cache = { expiresAt: now() + FAILURE_CACHE_TTL_MS, data: null, failed: true };
+      throw err;
     }
-    if (!response.ok) {
-      throw new AlphaVantageUnavailableError(`Alpha Vantage returned status ${response.status}`);
-    }
-
-    let payload: unknown;
-    try {
-      payload = await response.json();
-    } catch (err) {
-      throw new AlphaVantageUnavailableError('Alpha Vantage response was not valid JSON', { cause: err });
-    }
-
-    const data = (payload as { data?: unknown })?.data;
-    if (!Array.isArray(data)) {
-      throw new AlphaVantageUnavailableError('Alpha Vantage response missing expected data field');
-    }
-
-    const snapshots: GoldSnapshot[] = [];
-    for (const raw of data) {
-      if (raw === null || typeof raw !== 'object') continue;
-      const item = raw as Record<string, unknown>;
-      const date = item.date;
-      const value = Number(item.value);
-      if (typeof date !== 'string' || Number.isNaN(value)) continue;
-      snapshots.push({ date, value });
-    }
-
-    cache = { expiresAt: now() + DAILY_CACHE_TTL_MS, data: snapshots };
-    return snapshots;
   }
 
   return { getDailyHistory };
