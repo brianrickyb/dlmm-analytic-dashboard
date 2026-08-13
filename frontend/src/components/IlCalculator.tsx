@@ -129,7 +129,10 @@ function Result({ label, value, accent }: { label: ReactNode; value: string; acc
       <div className="text-xs" style={{ color: 'var(--muted)' }}>
         {label}
       </div>
-      <div className="mt-0.5 text-sm font-bold tabular-nums" style={{ color: accent ?? 'var(--text)' }}>
+      <div
+        className="mt-0.5 text-sm font-bold tabular-nums"
+        style={{ color: accent ?? 'var(--text)', fontFamily: 'var(--font-mono)' }}
+      >
         {value}
       </div>
     </div>

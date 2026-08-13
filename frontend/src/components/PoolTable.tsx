@@ -90,13 +90,13 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
                 {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
               </div>
             </div>
-            <div className="text-right tabular-nums" style={{ color: 'var(--text)' }}>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
               {formatUsdCompact(pool.stats.tvlUsd)}
             </div>
-            <div className="text-right tabular-nums" style={{ color: 'var(--text)' }}>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
               {formatUsdCompact(pool.stats.volume24hUsd)}
             </div>
-            <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--green)' }}>
+            <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
               {formatPercent(pool.stats.feeApr24h)}
             </div>
           </div>

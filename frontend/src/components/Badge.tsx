@@ -4,7 +4,7 @@ type BadgeVariant = 'accent' | 'good' | 'critical' | 'warning' | 'neutral';
 
 const VARIANT_STYLES: Record<BadgeVariant, { bg: string; color: string }> = {
   accent: { bg: 'var(--green-subtle)', color: 'var(--green)' },
-  good: { bg: 'rgba(0, 212, 126, 0.12)', color: 'var(--green)' },
+  good: { bg: 'var(--green-subtle)', color: 'var(--green)' },
   critical: { bg: 'var(--red-muted)', color: 'var(--red)' },
   warning: { bg: 'var(--amber-muted)', color: 'var(--amber)' },
   neutral: { bg: 'var(--card2)', color: 'var(--muted)' },

@@ -66,7 +66,7 @@ export function WalletConnectButton() {
       >
         <div
           className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md"
-          style={{ background: 'rgba(0,212,126,0.13)', border: '1px solid rgba(0,212,126,0.2)' }}
+          style={{ background: 'var(--green-subtle)', border: '1px solid var(--green-glow)' }}
         >
           <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth={2}>
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />

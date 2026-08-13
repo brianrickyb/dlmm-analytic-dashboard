@@ -19,7 +19,9 @@ function CustomTooltip({ active, payload, label, valueFormatter }: any) {
       style={{ background: 'var(--card2)', borderColor: 'var(--border2)', color: 'var(--text)' }}
     >
       <div style={{ color: 'var(--muted)' }}>{formatDate(label)}</div>
-      <div className="font-medium tabular-nums">{valueFormatter ? valueFormatter(value) : value}</div>
+      <div className="font-medium tabular-nums" style={{ fontFamily: 'var(--font-mono)' }}>
+        {valueFormatter ? valueFormatter(value) : value}
+      </div>
     </div>
   );
 }
@@ -42,13 +44,13 @@ export function HistoryChart({ data, dataKey, label, color, valueFormatter }: Hi
           <XAxis
             dataKey="snapshotAt"
             tickFormatter={formatDate}
-            tick={{ fill: 'var(--dim)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
             axisLine={{ stroke: 'var(--border2)' }}
             tickLine={false}
             minTickGap={40}
           />
           <YAxis
-            tick={{ fill: 'var(--dim)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
             axisLine={false}
             tickLine={false}
             width={56}
