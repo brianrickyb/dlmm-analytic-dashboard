@@ -14,10 +14,12 @@ const columns: { key: SortKey; label: string; termKey?: string }[] = [
 
 const GRID_COLS = 'grid-cols-[2fr_1fr_1fr_1fr]';
 
-export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
-  const [sortKey, setSortKey] = useState<SortKey>('tvlUsd');
+export function PoolTable({ pools, sortKey: externalSortKey }: { pools: PoolWithStats[]; sortKey?: SortKey }) {
+  const [internalSortKey, setInternalSortKey] = useState<SortKey>('tvlUsd');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
+
+  const sortKey = externalSortKey ?? internalSortKey;
 
   const sorted = useMemo(() => {
     const copy = [...pools];
@@ -32,7 +34,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
     if (key === sortKey) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      setSortKey(key);
+      setInternalSortKey(key);
       setSortDir('desc');
     }
   }
@@ -41,7 +43,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
     <div className="overflow-x-auto">
       <div className="space-y-1.5 text-sm">
         <div className={`grid ${GRID_COLS} gap-4 border border-transparent px-4`}>
-          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+          <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--dim)' }}>
             Pool
           </span>
           {columns.map((col) => (
@@ -49,8 +51,8 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
               key={col.key}
               type="button"
               onClick={() => toggleSort(col.key)}
-              className="text-right text-xs font-medium"
-              style={{ color: 'var(--muted)' }}
+              className="text-right text-[10px] font-medium uppercase tracking-wider"
+              style={{ color: 'var(--dim)' }}
             >
               {col.termKey ? (
                 <Tooltip termKey={col.termKey} interactive={false}>
@@ -76,14 +78,14 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
                 navigate(`/pools/${pool.id}`);
               }
             }}
-            className={`grid ${GRID_COLS} cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 hover:opacity-80`}
+            className={`grid ${GRID_COLS} cursor-pointer items-center gap-4 rounded-xl border px-4 py-3`}
             style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
           >
             <div>
               <div className="font-semibold" style={{ color: 'var(--text)' }}>
                 {pool.name}
               </div>
-              <div className="text-xs" style={{ color: 'var(--muted)' }}>
+              <div className="text-xs" style={{ color: 'var(--dim)', fontFamily: 'var(--font-mono)' }}>
                 <Tooltip termKey="binStep" interactive={false}>
                   bin step
                 </Tooltip>{' '}
