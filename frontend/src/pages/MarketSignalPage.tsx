@@ -4,15 +4,23 @@ import { DirectionSignal } from '../components/DirectionSignal';
 import { FundamentalsPanel } from '../components/FundamentalsPanel';
 import { MarketNewsList } from '../components/MarketNewsList';
 import { PillButton } from '../components/PillButton';
+import { StatTile } from '../components/StatTile';
 import { fetchMarketHistory, fetchMarketSignal } from '../lib/api/markets';
+import { formatUsd } from '../lib/format';
 import type { MarketSignalResponse, PriceRow } from '../types/market';
 
 const SYMBOL = 'xau';
-// The committed static dataset spans 2004-2026 (5500+ daily rows). Rendering the full series
-// on every mount is unnecessary weight for a chart whose purpose is recent trend context next
-// to the direction signal -- slice to the most recent ~year client-side instead of adding
-// backend query-param support for something only this one chart needs.
-const CHART_WINDOW_DAYS = 365;
+// The committed static dataset spans 2004-2026 (5500+ trading-day rows, not calendar days --
+// weekends/holidays aren't included). Rendering the full series on every mount is unnecessary
+// render weight for a chart whose purpose is recent trend context next to the direction signal,
+// so we slice to the most recent CHART_WINDOW_ROWS rows (roughly 1.5 years) client-side after
+// fetch. Note this slice only reduces render cost, not network cost: the full ~520KB /history
+// payload is still fetched in full on every cache miss. The real mitigation for repeat-visit
+// network cost is Phase 2's `Cache-Control: public, max-age=3600` header on the /history route
+// (repeat visits within an hour are served from cache, not refetched) -- we deliberately did not
+// add a `?days=`/`?limit=` backend query param, since that's out of scope for what this one
+// chart needs.
+const CHART_WINDOW_ROWS = 365;
 
 type FetchStatus = 'loading' | 'error' | 'ready';
 
@@ -70,7 +78,7 @@ export function MarketSignalPage() {
   }, [requestId]);
 
   const retry = () => setRequestId((n) => n + 1);
-  const chartData = history.slice(-CHART_WINDOW_DAYS);
+  const chartData = history.slice(-CHART_WINDOW_ROWS);
 
   // Fold the top-level /signal fetch's own loading/error state together with each section's
   // independent SectionResult failure, so DirectionSignal/FundamentalsPanel/MarketNewsList
@@ -81,14 +89,17 @@ export function MarketSignalPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          XAU/USD Market Signal
-        </h1>
-        <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Gold price, an experimental ML direction signal, live gold/forex news sentiment, and
-          macro fundamentals — all in one place.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            XAU/USD Market Signal
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Gold price, an experimental ML direction signal, live gold/forex news sentiment, and
+            macro fundamentals — all in one place.
+          </p>
+        </div>
+        {signal?.price ? <StatTile label="Spot Price (XAU/USD)" value={formatUsd(signal.price.close)} variant="hero" /> : null}
       </div>
 
       <div className="rounded-xl border-2 p-4 text-sm" style={{ borderColor: 'var(--status-critical)', background: 'var(--surface-1)' }}>
@@ -118,11 +129,17 @@ export function MarketSignalPage() {
         <PriceChart data={chartData} />
       )}
 
-      <DirectionSignal
-        status={directionStatus}
-        direction={signal?.direction.data ?? null}
-        errorMessage={signalStatus === 'error' ? signalError : signal?.direction.error}
-      />
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          Direction Signal
+        </h2>
+        <DirectionSignal
+          status={directionStatus}
+          direction={signal?.direction.data ?? null}
+          errorMessage={signalStatus === 'error' ? signalError : signal?.direction.error}
+          onRetry={retry}
+        />
+      </div>
 
       <div className="space-y-2">
         <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
@@ -132,6 +149,7 @@ export function MarketSignalPage() {
           status={fundamentalsStatus}
           fundamentals={signal?.fundamentals.data ?? null}
           errorMessage={signalStatus === 'error' ? signalError : signal?.fundamentals.error}
+          onRetry={retry}
         />
       </div>
 
