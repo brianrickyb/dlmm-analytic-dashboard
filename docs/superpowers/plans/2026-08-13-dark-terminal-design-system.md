@@ -523,7 +523,7 @@ import type { ButtonHTMLAttributes } from 'react';
 type PillVariant = 'solid' | 'tinted';
 
 const VARIANT_STYLE: Record<PillVariant, { background: string; color: string }> = {
-  solid: { background: 'var(--green)', color: '#000' },
+  solid: { background: 'var(--green)', color: 'var(--green-fg)' },
   tinted: { background: 'var(--green-subtle)', color: 'var(--green)' },
 };
 
@@ -550,9 +550,10 @@ export function PillButton({ variant = 'tinted', type = 'button', className = ''
 ```
 
 (`solid` used `--accent-fg` — white text on a dark-green background under the old palette; the
-mockup's brand mark and primary buttons use **black** text on the bright `--green`, matching
-`Wordmark`'s `color: '#000'` from Task 2 — `#000` is used directly here rather than a new token,
-matching how `Wordmark` already does the same thing.)
+mockup's brand mark and primary buttons use **black** text on the bright `--green`. Task 2's
+`Wordmark` code was corrected during review to use `var(--green-fg)` — a new token added to
+`index.css` — instead of a raw `#000`, since a hardcoded hex directly contradicts this plan's own
+Global Constraint. Use `var(--green-fg)` here too, not a literal `'#000'`.)
 
 - [ ] **Step 4: Build and visually confirm**
 
