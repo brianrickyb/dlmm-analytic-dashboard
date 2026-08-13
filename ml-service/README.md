@@ -50,8 +50,19 @@ not help, since they're in a different segment and don't count.
 Response:
 
 ```json
-{"direction": "bullish", "confidence": 0.73}
+{
+  "direction": "bullish",
+  "confidence": 0.73,
+  "rsi_14": 61.2,
+  "ma_crossover": 12.5,
+  "momentum_10": 8.4,
+  "volatility_14": 0.021
+}
 ```
+
+`rsi_14` (0-100), `ma_crossover` / `momentum_10` (price units), and `volatility_14` (standard
+deviation of log returns) are the model's raw input features, exposed for display purposes —
+not additional predictions.
 
 ### `POST /predict/sentiment`
 
