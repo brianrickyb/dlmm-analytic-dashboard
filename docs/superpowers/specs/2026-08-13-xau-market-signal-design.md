@@ -64,7 +64,7 @@ with real pandas — not guessed:
   closing it requires pulling Alpha Vantage's own historical daily series
   (`GOLD_HISTORY`), not just going-forward snapshots.
 
-### Confirmed: live/recent price data — Alpha Vantage, not Twelve Data
+### Live/recent price data — Twelve Data ruled out, Alpha Vantage's tier UNRESOLVED
 
 The brief's original assumption (Twelve Data free tier) does not hold: Twelve Data's own
 pricing page and exchange listing classify XAU/USD as a **Commodity**, gated behind the paid
@@ -72,6 +72,39 @@ pricing page and exchange listing classify XAU/USD as a **Commodity**, gated beh
 not commodities. This wasn't 100% confirmable with a live test call (no free API key was
 obtained during research), but the public pricing page and exchange badge are consistent and
 this is the stronger signal.
+
+**Alpha Vantage was picked as the replacement, but its own free-tier gold access is now also
+unresolved — this needs to be settled before the price-data source is final.** Two rounds of
+research produced directly conflicting signals:
+- Round 1 (during initial design): found `GOLD_SPOT`/`GOLD_HISTORY` function names referenced,
+  described as free-tier-accessible — but only tested against Alpha Vantage's `demo` key, which
+  returns the same generic "claim your key" message regardless of function validity or plan, so
+  this never actually confirmed anything.
+- Round 2 (start of Phase 2 planning): a direct fetch of Alpha Vantage's own documentation page
+  found a `function=GOLD` entry (not `GOLD_SPOT`) under "Commodities," with the page's own text
+  stating *"this is a premium API endpoint. Subscribe to any of our 150, 300, 600, or 1200
+  requests per minute premium plans to instantly unlock this endpoint."* A separate web search
+  turned up a third-party blog claiming Alpha Vantage's gold/silver data is "free forever" —
+  directly contradicting the documentation page. The `demo` key still doesn't resolve which is
+  right, since it never validates real endpoint access either way.
+
+**Why this wasn't resolved by getting a real key:** doing so requires submitting an email
+address to Alpha Vantage's signup form. Using the project owner's email to create a third-party
+account is a real-world action with account/inbox consequences (marketing contact, a ToS
+agreement made in their name) — not something to do autonomously without them being aware,
+unlike the earlier documentation research. This is exactly the class of thing to stop and ask
+about, per explicit instruction, rather than either guess or act on someone's behalf.
+
+**Resolution needed before this integration is considered final:** get a real (self-service,
+free-to-obtain) Alpha Vantage API key and test `GET /query?function=GOLD&interval=daily&apikey=<real key>`
+directly — a two-minute check, same as the still-outstanding Twelve Data verification this spec
+already flagged. Until then, `backend/src/services/alphaVantage.ts` is built against the
+best-available function name (`GOLD`, per the more authoritative direct-documentation source)
+behind a deliberately swappable interface, with this uncertainty called out in the code and in
+`backend/.env.example`. If it turns out gold data requires a paid plan too, the fix is swapping
+the one service file for a different provider (candidates already researched: GoldAPI.io,
+XAUS.com — both also have unconfirmed free-tier limits and would need the same live-key check),
+not a redesign of anything downstream.
 
 **Chosen instead: Alpha Vantage**, `GOLD_SPOT` (current) and `GOLD_HISTORY` (daily historical)
 functions, confirmed to exist on Alpha Vantage's free tier. The free tier is **25 requests/day**
