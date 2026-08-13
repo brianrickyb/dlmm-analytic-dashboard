@@ -3,8 +3,8 @@ import type { ButtonHTMLAttributes } from 'react';
 type PillVariant = 'solid' | 'tinted';
 
 const VARIANT_STYLE: Record<PillVariant, { background: string; color: string }> = {
-  solid: { background: 'var(--accent)', color: 'var(--accent-fg)' },
-  tinted: { background: 'var(--accent-bg)', color: 'var(--accent)' },
+  solid: { background: 'var(--green)', color: 'var(--green-fg)' },
+  tinted: { background: 'var(--green-subtle)', color: 'var(--green)' },
 };
 
 interface PillButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
