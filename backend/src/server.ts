@@ -7,6 +7,7 @@ import { registerAccountRoutes } from './routes/account.js';
 import { registerLiquidityRoutes } from './routes/liquidity.js';
 import { registerPositionsRoutes } from './routes/positions.js';
 import { registerPoolsRoutes } from './routes/pools.js';
+import { registerMarketsRoutes } from './routes/markets.js';
 
 export async function buildServer() {
   const app = Fastify({ logger: true });
@@ -27,6 +28,7 @@ export async function buildServer() {
   registerLiquidityRoutes(app);
   registerPositionsRoutes(app);
   registerPoolsRoutes(app);
+  registerMarketsRoutes(app);
 
   return app;
 }
