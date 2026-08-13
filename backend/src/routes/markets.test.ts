@@ -24,7 +24,14 @@ function fakeDeps(overrides: Partial<Parameters<typeof registerMarketsRoutes>[1]
     },
     newsService: {
       fetchNews: vi.fn().mockResolvedValue([
-        { id: '1', title: 'Gold rallies', url: 'https://a.example', sourceTitle: 'FXStreet', publishedAt: '2026-08-12T00:00:00Z' },
+        {
+          id: '1',
+          title: 'Gold rallies',
+          url: 'https://a.example',
+          sourceTitle: 'FXStreet',
+          publishedAt: '2026-08-12T00:00:00Z',
+          sentiment: 'positive',
+        },
       ]),
     },
     ...overrides,
@@ -67,7 +74,10 @@ describe('GET /api/markets/:symbol/signal', () => {
     expect(body.direction).toEqual({ data: { direction: 'bullish', confidence: 0.7 } });
     expect(body.fundamentals.data.fedFundsRate).toEqual({ date: '2026-08-12', value: 5.33 });
     expect(body.news.data).toHaveLength(1);
-    expect(body.news.data[0].sentiment).toEqual({ sentiment: 'positive', score: 0.8 });
+    expect(body.news.data[0].mlSentiment).toEqual({ sentiment: 'positive', score: 0.8 });
+    // the pre-existing NewsPost.sentiment string (keyword classifier, used by the News page)
+    // must survive untouched — the route must not overwrite it with the ML result.
+    expect(body.news.data[0].sentiment).toBe('positive');
     expect(deps.mlService.getDirection).toHaveBeenCalledWith(SAMPLE_HISTORY);
   });
 
@@ -136,7 +146,7 @@ describe('GET /api/markets/:symbol/signal', () => {
     expect(response.statusCode).toBe(200);
     const body = response.json();
     expect(body.news.data).toHaveLength(1);
-    expect(body.news.data[0].sentiment).toBeNull();
+    expect(body.news.data[0].mlSentiment).toBeNull();
   });
 
   it('returns 404 for an unsupported symbol', async () => {
