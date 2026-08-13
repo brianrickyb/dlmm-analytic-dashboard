@@ -12,6 +12,7 @@ import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
 import { AccountPage } from './pages/AccountPage';
 import { MyPositionsPage } from './pages/MyPositionsPage';
+import { MarketSignalPage } from './pages/MarketSignalPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/positions" element={<MyPositionsPage />} />
+              <Route path="/markets/xau" element={<MarketSignalPage />} />
             </Routes>
           </Layout>
         </AuthProvider>

@@ -28,6 +28,8 @@ export const FEED_SOURCES: FeedSource[] = [
   { key: 'cointelegraph', title: 'Cointelegraph', url: 'https://cointelegraph.com/rss' },
   { key: 'theblock', title: 'The Block', url: 'https://www.theblock.co/rss.xml' },
   { key: 'decrypt', title: 'Decrypt', url: 'https://decrypt.co/feed' },
+  { key: 'fxstreet', title: 'FXStreet', url: 'https://www.fxstreet.com/rss/news' },
+  { key: 'investinglive', title: 'InvestingLive', url: 'https://investinglive.com/feed/news' },
 ];
 
 /**
@@ -46,6 +48,7 @@ const CURRENCY_ALIASES: Record<string, string[]> = {
   JTO: ['jito'],
   WIF: ['dogwifhat', '$wif'],
   PYTH: ['pyth network', 'pyth'],
+  XAU: ['gold', 'xau', 'bullion'],
 };
 
 interface RssParserLike {
@@ -60,6 +63,12 @@ export interface NewsServiceDeps {
 
 const DEFAULT_CACHE_TTL_MS = 4 * 60 * 1000;
 
+function aliasMatches(haystack: string, alias: string): boolean {
+  const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`(?<![a-z0-9])${escaped}(?![a-z0-9])`, 'i');
+  return pattern.test(haystack);
+}
+
 function matchesCurrencies(title: string, currencies: string): boolean {
   const codes = currencies
     .split(',')
@@ -70,7 +79,7 @@ function matchesCurrencies(title: string, currencies: string): boolean {
   const haystack = title.toLowerCase();
   return codes.some((code) => {
     const aliases = CURRENCY_ALIASES[code] ?? [code.toLowerCase()];
-    return aliases.some((alias) => haystack.includes(alias));
+    return aliases.some((alias) => aliasMatches(haystack, alias));
   });
 }
 

@@ -7,6 +7,8 @@ import { registerAccountRoutes } from './routes/account.js';
 import { registerLiquidityRoutes } from './routes/liquidity.js';
 import { registerPositionsRoutes } from './routes/positions.js';
 import { registerPoolsRoutes } from './routes/pools.js';
+import { registerMarketsRoutes } from './routes/markets.js';
+import { createNewsService } from './services/rss.js';
 
 export async function buildServer() {
   const app = Fastify({ logger: true });
@@ -20,13 +22,19 @@ export async function buildServer() {
   // limited, even though `app.ready()` later resolves without error.
   await app.register(rateLimit, { global: false });
 
+  // Shared between registerNewsRoutes and registerMarketsRoutes so the 6 RSS
+  // feeds (including the gold/forex ones only markets.ts needs) are polled
+  // once per cache TTL, not twice by two independently-constructed services.
+  const newsService = createNewsService();
+
   app.get('/health', async () => ({ status: 'ok' }));
-  registerNewsRoutes(app);
+  registerNewsRoutes(app, { newsService });
   registerScreenerRoutes(app);
   registerAccountRoutes(app);
   registerLiquidityRoutes(app);
   registerPositionsRoutes(app);
   registerPoolsRoutes(app);
+  registerMarketsRoutes(app, { newsService });
 
   return app;
 }

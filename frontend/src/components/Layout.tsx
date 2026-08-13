@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { to: '/', label: 'Pools' },
   { to: '/news', label: 'News' },
   { to: '/screener', label: 'Screener' },
+  { to: '/markets/xau', label: 'Gold Signal' },
   { to: '/faq', label: 'FAQ' },
   { to: '/positions', label: 'My Positions' },
 ];
