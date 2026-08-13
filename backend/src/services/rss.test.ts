@@ -201,4 +201,25 @@ describe('createNewsService — XAU currency alias', () => {
 
     expect(posts).toEqual([expect.objectContaining({ title: 'Gold prices climb as investors seek safe haven' })]);
   });
+
+  it('does not match "gold" as a substring inside an unrelated word like "Goldman"', async () => {
+    const parser = fakeParser({
+      [coindesk.url]: {
+        items: [
+          { title: 'Goldman Sachs to acquire ETF manager NEOS in $2.25B deal', link: 'https://a.example', pubDate: '2026-08-12T00:00:00Z' },
+          { title: 'Gold prices climb as investors seek safe haven', link: 'https://b.example', pubDate: '2026-08-12T00:00:00Z' },
+        ],
+      },
+      [cointelegraph.url]: { items: [] },
+      [theblock.url]: { items: [] },
+      [decrypt.url]: { items: [] },
+      [fxstreet.url]: { items: [] },
+      [investinglive.url]: { items: [] },
+    });
+    const service = createNewsService({ parser });
+
+    const posts = await service.fetchNews({ currencies: 'XAU' });
+
+    expect(posts).toEqual([expect.objectContaining({ title: 'Gold prices climb as investors seek safe haven' })]);
+  });
 });
