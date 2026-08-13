@@ -41,7 +41,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
     <div className="overflow-x-auto">
       <div className="space-y-1.5 text-sm">
         <div className={`grid ${GRID_COLS} gap-4 border border-transparent px-4`}>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
             Pool
           </span>
           {columns.map((col) => (
@@ -50,7 +50,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
               type="button"
               onClick={() => toggleSort(col.key)}
               className="text-right text-xs font-medium"
-              style={{ color: 'var(--text-muted)' }}
+              style={{ color: 'var(--muted)' }}
             >
               {col.termKey ? (
                 <Tooltip termKey={col.termKey} interactive={false}>
@@ -77,26 +77,26 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
               }
             }}
             className={`grid ${GRID_COLS} cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 hover:opacity-80`}
-            style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+            style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
           >
             <div>
-              <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <div className="font-semibold" style={{ color: 'var(--text)' }}>
                 {pool.name}
               </div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <div className="text-xs" style={{ color: 'var(--muted)' }}>
                 <Tooltip termKey="binStep" interactive={false}>
                   bin step
                 </Tooltip>{' '}
                 {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
               </div>
             </div>
-            <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text)' }}>
               {formatUsdCompact(pool.stats.tvlUsd)}
             </div>
-            <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text)' }}>
               {formatUsdCompact(pool.stats.volume24hUsd)}
             </div>
-            <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--series-green)' }}>
+            <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--green)' }}>
               {formatPercent(pool.stats.feeApr24h)}
             </div>
           </div>

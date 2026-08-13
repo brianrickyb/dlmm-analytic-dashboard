@@ -75,14 +75,14 @@ export function PoolDetailPage() {
   }, [poolId, newsRequestId]);
 
   if (status === 'loading') {
-    return <div className="h-64 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
+    return <div className="h-64 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />;
   }
 
   if (status === 'not-found') {
     return (
       <div>
-        <p style={{ color: 'var(--text-primary)' }}>Pool not found.</p>
-        <Link to="/" style={{ color: 'var(--accent)' }}>
+        <p style={{ color: 'var(--text)' }}>Pool not found.</p>
+        <Link to="/" style={{ color: 'var(--green)' }}>
           Back to pool list
         </Link>
       </div>
@@ -91,8 +91,8 @@ export function PoolDetailPage() {
 
   if (status === 'error') {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <p style={{ color: 'var(--status-critical)' }}>{errorMessage}</p>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <p style={{ color: 'var(--red)' }}>{errorMessage}</p>
         <PillButton onClick={() => setRequestId((n) => n + 1)} className="mt-2 text-xs">
           Retry
         </PillButton>
@@ -105,13 +105,13 @@ export function PoolDetailPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/" className="text-xs" style={{ color: 'var(--accent)' }}>
+        <Link to="/" className="text-xs" style={{ color: 'var(--green)' }}>
           ← Back to pool list
         </Link>
-        <h1 className="mt-1 text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="mt-1 text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
           {pool!.name}
         </h1>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs" style={{ color: 'var(--muted)' }}>
           <Tooltip termKey="binStep">bin step</Tooltip> {pool!.binStep} · base fee {(pool!.baseFeeBps / 100).toFixed(2)}% · current
           price {formatPrice(stats.currentPrice)}
         </p>
@@ -124,14 +124,14 @@ export function PoolDetailPage() {
         <StatTile
           label={<Tooltip termKey="feeApr">Fee APR (est.)</Tooltip>}
           value={formatPercent(stats.feeApr24h)}
-          accent="var(--series-green)"
+          accent="var(--green)"
         />
       </div>
 
       {series.length === 0 ? (
         <div
           className="rounded-xl border p-4 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-muted)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--muted)' }}
         >
           This pool doesn't have enough recorded history yet to show trend charts or run the IL
           calculator — check back after the daily snapshot has run a few times.
@@ -145,7 +145,7 @@ export function PoolDetailPage() {
               data={series}
               dataKey="feeApr24h"
               label="Fee APR (est.)"
-              color="var(--series-green)"
+              color="var(--green)"
               valueFormatter={(v) => formatPercent(v)}
             />
           </div>
@@ -164,7 +164,7 @@ export function PoolDetailPage() {
       {connected ? (
         <AddLiquidityForm />
       ) : (
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
           Connect a wallet to add liquidity (devnet only — separate from the live pool shown above).
         </p>
       )}
