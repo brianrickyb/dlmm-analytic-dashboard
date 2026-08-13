@@ -74,18 +74,64 @@ describe('createFredService — success', () => {
 });
 
 describe('createFredService — failure handling', () => {
-  it('throws FredUnavailableError when the network request fails', async () => {
+  it('returns all nulls when all series network requests fail', async () => {
     const fetchImpl = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
     const service = createFredService({ fetchImpl, apiKey: 'test-key' });
 
-    await expect(service.getSummary()).rejects.toBeInstanceOf(FredUnavailableError);
+    const result = await service.getSummary();
+
+    expect(result).toEqual({
+      fedFundsRate: null,
+      realYield10y: null,
+      cpi: null,
+      dollarIndex: null,
+    });
   });
 
-  it('throws FredUnavailableError on a non-ok response', async () => {
+  it('returns all nulls on non-ok response for all series', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 400, json: async () => ({}) } as Response);
     const service = createFredService({ fetchImpl, apiKey: 'test-key' });
 
-    await expect(service.getSummary()).rejects.toBeInstanceOf(FredUnavailableError);
+    const result = await service.getSummary();
+
+    expect(result).toEqual({
+      fedFundsRate: null,
+      realYield10y: null,
+      cpi: null,
+      dollarIndex: null,
+    });
+  });
+
+  it('gracefully degrades to null for failed series while returning values for successful ones', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      const seriesId = new URL(url).searchParams.get('series_id')!;
+      if (seriesId === 'DTWEXBGS') {
+        // Dollar index fails with network error
+        throw new Error('ECONNREFUSED');
+      }
+      // Other three series succeed
+      const responses: Record<string, { date: string; value: string }> = {
+        DFF: { date: '2026-08-12', value: '5.33' },
+        DFII10: { date: '2026-08-12', value: '1.85' },
+        CPIAUCSL: { date: '2026-07-01', value: '312.5' },
+      };
+      const point = responses[seriesId];
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ observations: point ? [point] : [] }),
+      } as Response;
+    });
+    const service = createFredService({ fetchImpl, apiKey: 'test-key' });
+
+    const result = await service.getSummary();
+
+    expect(result).toEqual({
+      fedFundsRate: { date: '2026-08-12', value: 5.33 },
+      realYield10y: { date: '2026-08-12', value: 1.85 },
+      cpi: { date: '2026-07-01', value: 312.5 },
+      dollarIndex: null, // failed series returns null
+    });
   });
 });
 

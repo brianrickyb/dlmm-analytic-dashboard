@@ -86,12 +86,17 @@ export function createFredService(deps: FredServiceDeps = {}) {
       return cache.data;
     }
 
-    const [fedFundsRate, realYield10y, cpi, dollarIndex] = await Promise.all([
+    const results = await Promise.allSettled([
       fetchLatestObservation(fetchImpl, apiKey, SERIES.fedFundsRate),
       fetchLatestObservation(fetchImpl, apiKey, SERIES.realYield10y),
       fetchLatestObservation(fetchImpl, apiKey, SERIES.cpi),
       fetchLatestObservation(fetchImpl, apiKey, SERIES.dollarIndex),
     ]);
+
+    const fedFundsRate = results[0].status === 'fulfilled' ? results[0].value : null;
+    const realYield10y = results[1].status === 'fulfilled' ? results[1].value : null;
+    const cpi = results[2].status === 'fulfilled' ? results[2].value : null;
+    const dollarIndex = results[3].status === 'fulfilled' ? results[3].value : null;
 
     const summary: FredSummary = { fedFundsRate, realYield10y, cpi, dollarIndex };
     cache = { expiresAt: now() + cacheTtlMs, data: summary };
