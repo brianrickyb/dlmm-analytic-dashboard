@@ -6,6 +6,6 @@
     "volatility_14"
   ],
   "horizon_days": 5,
-  "trained_on_rows": 5426,
+  "trained_on_rows": 5428,
   "training_data_max_date": "2026-01-30"
 }

@@ -36,12 +36,22 @@ def test_predict_direction_returns_bullish_with_confidence():
 def test_predict_direction_returns_422_on_insufficient_history():
     app.dependency_overrides[get_direction_model] = lambda: FakeDirectionModel()
     try:
-        response = client.post("/predict/direction", json={"prices": []})
+        payload = {
+            "prices": [
+                {"date": "2026-01-01", "open": 100, "high": 101, "low": 99, "close": 100.5, "volume": 1000},
+                {"date": "2026-01-02", "open": 100.5, "high": 102, "low": 100, "close": 101.5, "volume": 1100},
+            ]
+        }
+        response = client.post("/predict/direction", json=payload)
         assert response.status_code == 422
     finally:
         app.dependency_overrides.clear()
 
 
 def test_predict_direction_rejects_empty_prices_via_schema_validation():
-    response = client.post("/predict/direction", json={"prices": []})
-    assert response.status_code == 422
+    app.dependency_overrides[get_direction_model] = lambda: FakeDirectionModel()
+    try:
+        response = client.post("/predict/direction", json={"prices": []})
+        assert response.status_code == 422
+    finally:
+        app.dependency_overrides.clear()

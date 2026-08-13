@@ -72,6 +72,9 @@ def evaluate_horizon(df: pd.DataFrame, horizon_days: int) -> dict:
         X_test = usable.loc[test_idx, FEATURE_COLUMNS]
         y_test = usable.loc[test_idx, "target"]
 
+        majority_class = y_train.mode().iloc[0]
+        baseline_accuracy = (y_test == majority_class).mean()
+
         model = HistGradientBoostingClassifier(random_state=42)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
@@ -86,6 +89,7 @@ def evaluate_horizon(df: pd.DataFrame, horizon_days: int) -> dict:
                 "n_train": len(train_idx),
                 "n_test": len(test_idx),
                 "accuracy": accuracy,
+                "baseline_accuracy": baseline_accuracy,
                 "precision_bearish": precision[0],
                 "recall_bearish": recall[0],
                 "precision_bullish": precision[1],
@@ -94,7 +98,15 @@ def evaluate_horizon(df: pd.DataFrame, horizon_days: int) -> dict:
         )
 
     mean_accuracy = sum(r["accuracy"] for r in fold_reports) / len(fold_reports) if fold_reports else float("nan")
-    return {"horizon_days": horizon_days, "folds": fold_reports, "mean_accuracy": mean_accuracy}
+    mean_baseline_accuracy = (
+        sum(r["baseline_accuracy"] for r in fold_reports) / len(fold_reports) if fold_reports else float("nan")
+    )
+    return {
+        "horizon_days": horizon_days,
+        "folds": fold_reports,
+        "mean_accuracy": mean_accuracy,
+        "mean_baseline_accuracy": mean_baseline_accuracy,
+    }
 
 
 def format_report(results: list[dict]) -> str:
@@ -108,12 +120,17 @@ def format_report(results: list[dict]) -> str:
     for result in results:
         lines.append(f"## Horizon: {result['horizon_days']} day(s) ahead")
         lines.append(f"Mean accuracy across folds: {result['mean_accuracy']:.4f}")
+        lines.append(f"Mean baseline accuracy across folds (majority class): {result['mean_baseline_accuracy']:.4f}")
         lines.append("")
-        lines.append("| Year | Train rows | Test rows | Accuracy | Precision (bearish) | Recall (bearish) | Precision (bullish) | Recall (bullish) |")
-        lines.append("|---|---|---|---|---|---|---|---|")
+        lines.append(
+            "| Year | Train rows | Test rows | Accuracy | Baseline (majority class) | "
+            "Precision (bearish) | Recall (bearish) | Precision (bullish) | Recall (bullish) |"
+        )
+        lines.append("|---|---|---|---|---|---|---|---|---|")
         for f in result["folds"]:
             lines.append(
                 f"| {f['year']} | {f['n_train']} | {f['n_test']} | {f['accuracy']:.4f} | "
+                f"{f['baseline_accuracy']:.4f} | "
                 f"{f['precision_bearish']:.4f} | {f['recall_bearish']:.4f} | "
                 f"{f['precision_bullish']:.4f} | {f['recall_bullish']:.4f} |"
             )
@@ -125,11 +142,46 @@ def format_report(results: list[dict]) -> str:
     )
     lines.append("")
     lines.append(
+        "Note: the horizon above was chosen by picking the best mean accuracy among the three "
+        "candidates evaluated on these same folds, so this number is a mild overestimate of "
+        "true out-of-sample performance (the usual 'best-of-N' selection bias)."
+    )
+    lines.append("")
+    lines.append(
         "**Limitations:** trained on daily OHLCV technical features only (no macro/news "
         "features), a single asset, walk-forward-evaluated on 5 yearly folds (2020-2024). "
-        "A mean accuracy modestly above 0.5 does not imply the model is tradable — see the "
-        "app's permanent disclaimer. This report states the real numbers from the run above; "
-        "if they are close to a coin flip, that is the honest result, not a bug."
+        "See the app's permanent disclaimer. This report states the real numbers from the "
+        "run above; if they are close to a coin flip, that is the honest result, not a bug."
+    )
+    lines.append("")
+    beats = [r for r in results if r["mean_accuracy"] > r["mean_baseline_accuracy"]]
+    if not beats:
+        baseline_finding = (
+            "for every horizon, this model's mean accuracy is at or below a naive "
+            "majority-class baseline (always predict whichever direction was more common in "
+            "that fold's training data). This means the model, as currently built (four basic "
+            "technical indicators, no macro or news features), does not demonstrate a real "
+            "directional edge over the simplest possible baseline."
+        )
+    elif len(beats) == len(results):
+        baseline_finding = (
+            "this model's mean accuracy beats a naive majority-class baseline (always predict "
+            "whichever direction was more common in that fold's training data) on every "
+            "horizon evaluated — though see the best-of-N selection-bias note above before "
+            "reading too much into the margin."
+        )
+    else:
+        beat_horizons = ", ".join(f"{r['horizon_days']}-day" for r in beats)
+        baseline_finding = (
+            f"this model's mean accuracy beats a naive majority-class baseline (always predict "
+            f"whichever direction was more common in that fold's training data) only on the "
+            f"{beat_horizons} horizon(s); on the remaining horizon(s) it is at or below baseline."
+        )
+    lines.append(
+        f"**Baseline comparison:** {baseline_finding} It is shipped as a demonstration of the "
+        "pipeline (data, features, walk-forward evaluation, serving), not as a signal anyone "
+        "should act on — which is exactly why the app's disclaimer is permanent, not a "
+        "one-time notice."
     )
     return "\n".join(lines)
 

@@ -72,7 +72,7 @@ def test_volatility_matches_known_computed_value():
     assert volatility.iloc[19] == pytest.approx(0.007723, abs=0.000001)
 
 
-def test_segment_ids_increments_only_on_gap_over_five_days():
+def test_segment_ids_increments_only_on_gap_over_ten_days():
     dates = pd.Series(
         list(pd.date_range("2024-01-01", periods=10, freq="D"))
         + list(pd.date_range("2024-01-21", periods=8, freq="D"))

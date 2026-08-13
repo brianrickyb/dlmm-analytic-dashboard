@@ -15,8 +15,11 @@ class PricePoint(BaseModel):
 class DirectionRequest(BaseModel):
     prices: list[PricePoint] = Field(
         min_length=1,
-        description="Trailing daily OHLCV rows, ascending by date, at least 50 rows "
-        "(the longest feature warmup period).",
+        description="Trailing daily OHLCV rows, ascending by date. Send the ENTIRE current "
+        "segment (every row since the most recent gap of more than GAP_THRESHOLD_DAYS days "
+        "in the source data) -- clipping to exactly the 50-row warmup minimum produces a "
+        "different RSI than training-time computation, since RSI is a recursive calculation "
+        "seeded at the start of its input window, not a fixed-window statistic.",
     )
 
 

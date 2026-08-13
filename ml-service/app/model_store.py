@@ -4,7 +4,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from training.features import MA_LONG_PERIOD, compute_features
+from training.features import GAP_THRESHOLD_DAYS, MA_LONG_PERIOD, compute_features, segment_ids
 
 ARTIFACT_DIR = Path(__file__).parent / "artifacts"
 MODEL_PATH = ARTIFACT_DIR / "direction_model.joblib"
@@ -28,9 +28,12 @@ class DirectionModel:
         features_df = compute_features(df)
         latest = features_df.iloc[[-1]][self.feature_columns]
         if latest.isnull().any(axis=1).iloc[0]:
+            seg = segment_ids(df["Date"])
+            current_segment_size = int((seg == seg.iloc[-1]).sum())
             raise ValueError(
-                "Not enough price history to compute all features "
-                f"(need at least {MA_LONG_PERIOD} trailing rows for the longest feature's warmup)."
+                f"Not enough price history in the current segment to compute all features "
+                f"(only {current_segment_size} rows since the most recent gap of more than "
+                f"{GAP_THRESHOLD_DAYS} days; need at least {MA_LONG_PERIOD})."
             )
 
         proba = self.model.predict_proba(latest)[0]

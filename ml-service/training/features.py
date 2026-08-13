@@ -1,11 +1,14 @@
 """Feature engineering for the XAU/USD daily direction model.
 
-All rolling-window features reset at any gap of more than 5 calendar days
+All rolling-window features reset at any gap of more than 10 calendar days
 between consecutive rows (see `segment_ids`) — the 2004-2026 daily dataset
 has two such gaps (33 days ending 2025-10-15, 9 days ending 2026-01-22; see
-docs/superpowers/specs/2026-08-13-xau-market-signal-design.md), and a
-rolling indicator must not silently blend pre-gap and post-gap prices as if
-they were consecutive trading days.
+docs/superpowers/specs/2026-08-13-xau-market-signal-design.md). The
+threshold is deliberately set above the dataset's 9-day gap (an ordinary
+extended-holiday-scale gap) but below its 33-day gap (a genuinely severe
+one), so the current live segment stays large enough for the model's
+50-row warmup. A rolling indicator must not silently blend pre-gap and
+post-gap prices as if they were consecutive trading days.
 """
 from __future__ import annotations
 
@@ -17,7 +20,7 @@ MA_SHORT_PERIOD = 10
 MA_LONG_PERIOD = 50
 MOMENTUM_PERIOD = 10
 VOLATILITY_PERIOD = 14
-GAP_THRESHOLD_DAYS = 5
+GAP_THRESHOLD_DAYS = 10
 
 
 def segment_ids(dates: pd.Series, gap_days: int = GAP_THRESHOLD_DAYS) -> pd.Series:
@@ -65,7 +68,7 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     """Adds rsi_14, ma_crossover, momentum_10, volatility_14 columns to df.
 
     `df` must have `Date` (datetime64) and `Close` (float) columns, sorted
-    ascending by Date. Rolling features reset at each gap > 5 days (see
+    ascending by Date. Rolling features reset at each gap > 10 days (see
     `segment_ids`) so they never blend pre-gap and post-gap prices.
     """
     seg = segment_ids(df["Date"])

@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from training.features import GAP_THRESHOLD_DAYS
+
 DATA_PATH = Path(__file__).parent / "data" / "XAU_1d_data.csv"
 
 
@@ -25,9 +27,9 @@ def main() -> None:
     print("rows where High < Low:", (df["High"] < df["Low"]).sum())
 
     gaps = df["Date"].diff().dt.days
-    big_gaps = df[gaps > 5][["Date"]].copy()
-    big_gaps["gap_days"] = gaps[gaps > 5].values
-    print("gaps > 5 days:")
+    big_gaps = df[gaps > GAP_THRESHOLD_DAYS][["Date"]].copy()
+    big_gaps["gap_days"] = gaps[gaps > GAP_THRESHOLD_DAYS].values
+    print(f"gaps > {GAP_THRESHOLD_DAYS} days:")
     print(big_gaps.to_string())
 
 
