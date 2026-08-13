@@ -14,7 +14,15 @@ const columns: { key: SortKey; label: string; termKey?: string }[] = [
 
 const GRID_COLS = 'grid-cols-[2fr_1fr_1fr_1fr]';
 
-export function PoolTable({ pools, sortKey: externalSortKey }: { pools: PoolWithStats[]; sortKey?: SortKey }) {
+export function PoolTable({
+  pools,
+  sortKey: externalSortKey,
+  onSortChange,
+}: {
+  pools: PoolWithStats[];
+  sortKey?: SortKey;
+  onSortChange?: (key: SortKey) => void;
+}) {
   const [internalSortKey, setInternalSortKey] = useState<SortKey>('tvlUsd');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
@@ -35,6 +43,7 @@ export function PoolTable({ pools, sortKey: externalSortKey }: { pools: PoolWith
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setInternalSortKey(key);
+      onSortChange?.(key);
       setSortDir('desc');
     }
   }
@@ -43,7 +52,7 @@ export function PoolTable({ pools, sortKey: externalSortKey }: { pools: PoolWith
     <div className="overflow-x-auto">
       <div className="space-y-1.5 text-sm">
         <div className={`grid ${GRID_COLS} gap-4 border border-transparent px-4`}>
-          <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--dim)' }}>
+          <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Pool
           </span>
           {columns.map((col) => (
@@ -52,7 +61,7 @@ export function PoolTable({ pools, sortKey: externalSortKey }: { pools: PoolWith
               type="button"
               onClick={() => toggleSort(col.key)}
               className="text-right text-[10px] font-medium uppercase tracking-wider"
-              style={{ color: 'var(--dim)' }}
+              style={{ color: 'var(--muted)' }}
             >
               {col.termKey ? (
                 <Tooltip termKey={col.termKey} interactive={false}>
@@ -85,7 +94,7 @@ export function PoolTable({ pools, sortKey: externalSortKey }: { pools: PoolWith
               <div className="font-semibold" style={{ color: 'var(--text)' }}>
                 {pool.name}
               </div>
-              <div className="text-xs" style={{ color: 'var(--dim)', fontFamily: 'var(--font-mono)' }}>
+              <div className="text-xs" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
                 <Tooltip termKey="binStep" interactive={false}>
                   bin step
                 </Tooltip>{' '}

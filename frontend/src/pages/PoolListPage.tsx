@@ -117,12 +117,12 @@ export function PoolListPage() {
                 </button>
               ))}
             </div>
-            <span className="ml-auto text-xs" style={{ color: 'var(--dim)' }}>
+            <span className="ml-auto text-xs" style={{ color: 'var(--muted)' }}>
               {filtered.length} pools
             </span>
           </div>
 
-          <PoolTable pools={filtered} sortKey={sortKey} />
+          <PoolTable pools={filtered} sortKey={sortKey} onSortChange={setSortKey} />
         </>
       )}
     </div>
