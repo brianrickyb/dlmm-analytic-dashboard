@@ -1,6 +1,14 @@
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { PriceRow } from '../types/market';
-import { formatDate, formatUsd } from '../lib/format';
+import { formatUsd } from '../lib/format';
+
+// The shared `formatDate` in lib/format.ts omits the year, which is correct for the shorter
+// windows it's used for elsewhere (e.g. HistoryChart.tsx) but ambiguous here: this chart spans
+// roughly 1.5 years, so two points 12 months apart would otherwise render identical labels
+// (e.g. both "Aug 13"). Kept local to this file rather than changing the shared helper.
+function formatChartDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit', timeZone: 'UTC' });
+}
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
@@ -10,7 +18,7 @@ function CustomTooltip({ active, payload, label }: any) {
       className="rounded-lg border px-3 py-2 text-xs shadow-sm"
       style={{ background: 'var(--surface-1)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
     >
-      <div style={{ color: 'var(--text-muted)' }}>{formatDate(label)}</div>
+      <div style={{ color: 'var(--text-muted)' }}>{formatChartDate(label)}</div>
       <div className="font-medium tabular-nums">{formatUsd(value)}</div>
     </div>
   );
@@ -33,7 +41,7 @@ export function PriceChart({ data }: { data: PriceRow[] }) {
           <CartesianGrid stroke="var(--gridline)" vertical={false} strokeDasharray="0" />
           <XAxis
             dataKey="date"
-            tickFormatter={formatDate}
+            tickFormatter={formatChartDate}
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             axisLine={{ stroke: 'var(--axis)' }}
             tickLine={false}

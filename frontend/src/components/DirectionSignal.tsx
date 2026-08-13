@@ -1,13 +1,15 @@
 import { Badge } from './Badge';
+import { PillButton } from './PillButton';
 import type { DirectionResult } from '../types/market';
 
 interface DirectionSignalProps {
   status: 'loading' | 'error' | 'ready';
   direction: DirectionResult | null;
   errorMessage?: string;
+  onRetry: () => void;
 }
 
-export function DirectionSignal({ status, direction, errorMessage }: DirectionSignalProps) {
+export function DirectionSignal({ status, direction, errorMessage, onRetry }: DirectionSignalProps) {
   if (status === 'loading') {
     return <div className="h-28 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
   }
@@ -16,6 +18,9 @@ export function DirectionSignal({ status, direction, errorMessage }: DirectionSi
     return (
       <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Direction signal is unavailable right now.'}</p>
+        <PillButton onClick={onRetry} className="mt-2 text-xs">
+          Retry
+        </PillButton>
       </div>
     );
   }

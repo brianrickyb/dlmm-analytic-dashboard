@@ -1,10 +1,12 @@
 import { StatTile } from './StatTile';
+import { PillButton } from './PillButton';
 import type { FredObservation, FredSummary } from '../types/market';
 
 interface FundamentalsPanelProps {
   status: 'loading' | 'error' | 'ready';
   fundamentals: FredSummary | null;
   errorMessage?: string;
+  onRetry: () => void;
 }
 
 function formatObservation(obs: FredObservation | null, suffix: string): string {
@@ -12,7 +14,7 @@ function formatObservation(obs: FredObservation | null, suffix: string): string 
   return `${obs.value.toFixed(2)}${suffix}`;
 }
 
-export function FundamentalsPanel({ status, fundamentals, errorMessage }: FundamentalsPanelProps) {
+export function FundamentalsPanel({ status, fundamentals, errorMessage, onRetry }: FundamentalsPanelProps) {
   if (status === 'loading') {
     return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -27,6 +29,9 @@ export function FundamentalsPanel({ status, fundamentals, errorMessage }: Fundam
     return (
       <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
         <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Fundamentals are unavailable right now.'}</p>
+        <PillButton onClick={onRetry} className="mt-2 text-xs">
+          Retry
+        </PillButton>
       </div>
     );
   }
