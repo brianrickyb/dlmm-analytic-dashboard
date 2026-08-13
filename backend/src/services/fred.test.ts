@@ -2,8 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { createFredService, FredUnavailableError } from './fred.js';
 
 function fredResponseFor(seriesToValue: Record<string, { date: string; value: string } | null>) {
-  return vi.fn(async (url: string) => {
-    const seriesId = new URL(url).searchParams.get('series_id')!;
+  return vi.fn(async (url: string | URL | Request) => {
+    const urlStr = String(url);
+    const seriesId = new URL(urlStr).searchParams.get('series_id')!;
     const point = seriesToValue[seriesId];
     return {
       ok: true,
@@ -103,8 +104,9 @@ describe('createFredService — failure handling', () => {
   });
 
   it('gracefully degrades to null for failed series while returning values for successful ones', async () => {
-    const fetchImpl = vi.fn(async (url: string) => {
-      const seriesId = new URL(url).searchParams.get('series_id')!;
+    const fetchImpl = vi.fn(async (url: string | URL | Request) => {
+      const urlStr = String(url);
+      const seriesId = new URL(urlStr).searchParams.get('series_id')!;
       if (seriesId === 'DTWEXBGS') {
         // Dollar index fails with network error
         throw new Error('ECONNREFUSED');
