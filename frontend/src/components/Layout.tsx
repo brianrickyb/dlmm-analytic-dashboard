@@ -108,7 +108,7 @@ function Wordmark() {
     <>
       <span
         className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-sm font-extrabold"
-        style={{ background: 'linear-gradient(135deg, #00d47e 0%, #00845c 100%)', color: '#000', fontFamily: 'var(--font-mono)' }}
+        style={{ background: 'linear-gradient(135deg, var(--green) 0%, var(--green-gradient-end) 100%)', color: 'var(--green-fg)', fontFamily: 'var(--font-mono)' }}
       >
         D
       </span>

@@ -93,14 +93,14 @@ export function WalletConnectButton() {
         {connecting ? 'Connecting...' : 'Connect Wallet'}
       </PillButton>
       {error ? (
-        <p className="absolute bottom-full left-0 mb-1 whitespace-nowrap text-xs" style={{ color: 'var(--status-critical)' }}>
+        <p className="absolute bottom-full left-0 mb-1 whitespace-nowrap text-xs" style={{ color: 'var(--red)' }}>
           {error}
         </p>
       ) : null}
       {pickerOpen ? (
         <div
           className="absolute bottom-full left-0 z-10 mb-1 rounded-xl border text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
         >
           {wallets.map((w) => {
             const installed = w.readyState === WalletReadyState.Installed || w.readyState === WalletReadyState.Loadable;
@@ -110,7 +110,7 @@ export function WalletConnectButton() {
                 type="button"
                 onClick={() => handleSelect(w)}
                 className="block w-full px-3 py-1.5 text-left"
-                style={{ color: 'var(--text-primary)' }}
+                style={{ color: 'var(--text)' }}
               >
                 {w.adapter.name}
               </button>
@@ -121,7 +121,7 @@ export function WalletConnectButton() {
                 target="_blank"
                 rel="noreferrer"
                 className="flex w-full items-center justify-between gap-3 px-3 py-1.5"
-                style={{ color: 'var(--text-muted)' }}
+                style={{ color: 'var(--muted)' }}
               >
                 <span>{w.adapter.name}</span>
                 <span className="text-xs">Install ↗</span>
