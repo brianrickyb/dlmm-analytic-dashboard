@@ -46,7 +46,7 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
     <div className="overflow-x-auto">
       <div className="space-y-1.5 text-sm">
         <div className={`grid ${GRID_COLS} gap-4 border border-transparent px-4`}>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
             Pair
           </span>
           {columns.map((col) => (
@@ -55,7 +55,7 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
               type="button"
               onClick={() => toggleSort(col.key)}
               className="text-right text-xs font-medium"
-              style={{ color: 'var(--text-muted)' }}
+              style={{ color: 'var(--muted)' }}
             >
               {col.termKey ? (
                 <Tooltip termKey={col.termKey} interactive={false}>
@@ -76,24 +76,24 @@ export function PositioningTable({ pairs, topLongSymbols, topShortSymbols }: Pos
               key={pair.symbol}
               className={`grid ${GRID_COLS} items-center gap-4 rounded-xl border px-4 py-3`}
               style={{
-                borderColor: isTopLong ? 'var(--accent)' : 'var(--border)',
-                background: isTopLong ? 'linear-gradient(to right, var(--accent-bg), var(--surface-1))' : 'var(--surface-1)',
+                borderColor: isTopLong ? 'var(--green)' : 'var(--border)',
+                background: isTopLong ? 'linear-gradient(to right, var(--green-subtle), var(--card))' : 'var(--card)',
               }}
             >
-              <div className="flex items-center gap-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <div className="flex items-center gap-2 font-semibold" style={{ color: 'var(--text)' }}>
                 {pair.symbol}
                 {isTopLong ? <Badge variant="accent">Long-leaning</Badge> : null}
                 {isTopShort ? <Badge variant="critical">Short-leaning</Badge> : null}
               </div>
-              <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-right tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
                 {(pair.buyRatio * 100).toFixed(1)}% / {(pair.sellRatio * 100).toFixed(1)}%
               </div>
-              <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-right tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
                 {formatPercent(pair.fundingRate * 100, 4)}
               </div>
               <div
                 className="text-right tabular-nums"
-                style={{ color: pair.price24hPct >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}
+                style={{ color: pair.price24hPct >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: 'var(--font-mono)' }}
               >
                 {formatPercent(pair.price24hPct)}
               </div>
