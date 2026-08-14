@@ -70,7 +70,7 @@ export function MyPositionsPage() {
       <ul className="space-y-1.5">
         {positions.map((position) => (
           <li key={position.positionAddress} className="rounded-xl border p-3 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-            <p style={{ color: 'var(--text)' }}>Pool: {position.poolAddress}</p>
+            <p style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>Pool: {position.poolAddress}</p>
             <p style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>Position: {position.positionAddress}</p>
             <a href={`https://solscan.io/account/${position.positionAddress}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--green)' }}>
               View on Solscan
