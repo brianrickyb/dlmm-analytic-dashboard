@@ -103,7 +103,7 @@ export function PoolDetailPage() {
   const stats = pool!.stats;
 
   return (
-    <div className="space-y-6">
+    <div className="page-enter space-y-6">
       <div>
         <Link to="/" className="text-xs" style={{ color: 'var(--green)' }}>
           ← Back to pool list

@@ -89,6 +89,7 @@ export function PoolListPage() {
                 stroke="var(--muted)"
                 strokeWidth={2}
                 className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
+                aria-hidden="true"
               >
                 <circle cx={11} cy={11} r={8} />
                 <path d="m21 21-4.35-4.35" />
@@ -97,7 +98,8 @@ export function PoolListPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search pools…"
-                className="w-full rounded-lg border py-1.5 pl-8 pr-3 text-sm outline-none"
+                aria-label="Search pools"
+                className="w-full rounded-lg border py-1.5 pl-8 pr-3 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
                 style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
               />
             </div>
@@ -107,6 +109,7 @@ export function PoolListPage() {
                   key={key}
                   type="button"
                   onClick={() => setSortKey(key)}
+                  aria-pressed={sortKey === key}
                   className="rounded-md px-2.5 py-1 text-xs font-medium"
                   style={{
                     background: sortKey === key ? 'var(--green-subtle)' : 'transparent',
@@ -118,7 +121,7 @@ export function PoolListPage() {
               ))}
             </div>
             <span className="ml-auto text-xs" style={{ color: 'var(--muted)' }}>
-              {filtered.length} pools
+              {search ? `${filtered.length} of ${pools.length} pools` : `${filtered.length} pools`}
             </span>
           </div>
 
