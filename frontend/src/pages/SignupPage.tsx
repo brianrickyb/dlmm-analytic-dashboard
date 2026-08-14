@@ -30,14 +30,14 @@ export function SignupPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm space-y-4">
-      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+    <div className="page-enter mx-auto max-w-sm space-y-4">
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
         Sign up
       </h1>
       {confirmationSent ? (
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
           Check your email to confirm your account, then{' '}
-          <Link to="/login" style={{ color: 'var(--accent)' }}>
+          <Link to="/login" style={{ color: 'var(--green)' }}>
             log in
           </Link>
           .
@@ -51,8 +51,8 @@ export function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full rounded border px-3 py-1.5 text-sm"
-              style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+              className="w-full rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
+              style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
             />
             <input
               type="password"
@@ -61,11 +61,11 @@ export function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full rounded border px-3 py-1.5 text-sm"
-              style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+              className="w-full rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
+              style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
             />
             {error ? (
-              <p className="text-xs" style={{ color: 'var(--status-critical)' }}>
+              <p className="text-xs" style={{ color: 'var(--red)' }}>
                 {error}
               </p>
             ) : null}
@@ -73,9 +73,9 @@ export function SignupPage() {
               {submitting ? 'Signing up...' : 'Sign up'}
             </PillButton>
           </form>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: 'var(--accent)' }}>
+            <Link to="/login" style={{ color: 'var(--green)' }}>
               Log in
             </Link>
           </p>
