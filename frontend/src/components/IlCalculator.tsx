@@ -52,7 +52,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
             value={depositUsd}
             onChange={(e) => setDepositUsd(Number(e.target.value) || 0)}
             className="rounded border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
+            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-mono)' }}
           />
         </label>
 
@@ -62,7 +62,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
             value={strategy}
             onChange={(e) => handleStrategyChange(e.target.value as Strategy)}
             className="rounded border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
+            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-mono)' }}
           >
             <option value="Spot">Spot</option>
             <option value="Curve">Curve</option>
@@ -79,7 +79,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
             value={widthPct}
             onChange={(e) => setWidthPct(Number(e.target.value) || 1)}
             className="rounded border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
+            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-mono)' }}
           />
         </label>
 
@@ -89,7 +89,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
             value={daysAgo}
             onChange={(e) => setDaysAgo(Number(e.target.value))}
             className="rounded border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)' }}
+            style={{ borderColor: 'var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-mono)' }}
           >
             {ENTRY_OPTIONS.map((d) => (
               <option key={d} value={d}>
