@@ -23,7 +23,7 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
     return (
       <div className="flex flex-wrap gap-2">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 w-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div key={i} className="h-20 w-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
         ))}
       </div>
     );
@@ -31,8 +31,8 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
 
   if (status === 'error') {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Failed to load pump watch.'}</p>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <p style={{ color: 'var(--red)' }}>{errorMessage ?? 'Failed to load pump watch.'}</p>
         <PillButton onClick={onRetry} className="mt-2 text-xs">
           Retry
         </PillButton>
@@ -42,7 +42,7 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
 
   if (candidates.length === 0) {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-muted)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--muted)' }}>
         No pools currently match the pump criteria — check back soon.
       </div>
     );
@@ -54,7 +54,7 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
         <div
           key={candidate.poolId}
           className="min-w-[180px] rounded-xl border px-3 py-2 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
         >
           <a
             href={candidate.poolUrl}
@@ -62,14 +62,14 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
             rel="noreferrer"
             className="flex items-center justify-between gap-2 hover:opacity-80"
           >
-            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <span className="font-semibold" style={{ color: 'var(--text)' }}>
               {candidate.symbol}
             </span>
-            <span className="tabular-nums text-xs font-semibold" style={{ color: 'var(--status-good)' }}>
+            <span className="tabular-nums text-xs font-semibold" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
               +{formatPercent(candidate.priceChangePct6h)}
             </span>
           </a>
-          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-xs" style={{ color: 'var(--muted)' }}>
             {candidate.network} · {formatUsdCompact(candidate.volumeUsd24h)} vol · {poolAge(candidate.poolCreatedAt)}
           </div>
           {candidate.news ? (
