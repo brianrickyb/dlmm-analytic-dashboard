@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PoolWithStats } from '../types/pool';
 import { formatPercent, formatUsdCompact } from '../lib/format';
@@ -6,6 +6,10 @@ import { Tooltip } from './Tooltip';
 
 type SortKey = 'tvlUsd' | 'volume24hUsd' | 'feeApr24h';
 
+// The mockup's per-row 7-day sparkline column is intentionally omitted here --
+// /api/pools has no per-pool historical array today, and fetching each of 50
+// pools' full history just for a list-page decoration would be wasteful. This
+// is a deferred backend enhancement, not an oversight.
 const columns: { key: SortKey; label: string; termKey?: string }[] = [
   { key: 'tvlUsd', label: 'TVL', termKey: 'tvl' },
   { key: 'volume24hUsd', label: 'Volume (24h)' },
@@ -28,6 +32,10 @@ export function PoolTable({
   const navigate = useNavigate();
 
   const sortKey = externalSortKey ?? internalSortKey;
+
+  useEffect(() => {
+    if (externalSortKey !== undefined) setSortDir('desc');
+  }, [externalSortKey]);
 
   const sorted = useMemo(() => {
     const copy = [...pools];
