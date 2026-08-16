@@ -1,26 +1,15 @@
 import { useEffect, useState } from 'react';
-import { PriceChart } from '../components/PriceChart';
+import { TradingViewChart } from '../components/TradingViewChart';
 import { DirectionSignal } from '../components/DirectionSignal';
 import { FundamentalsPanel } from '../components/FundamentalsPanel';
 import { MarketNewsList } from '../components/MarketNewsList';
-import { PillButton } from '../components/PillButton';
 import { StatTile } from '../components/StatTile';
-import { fetchMarketHistory, fetchMarketSignal } from '../lib/api/markets';
+import { fetchMarketSignal } from '../lib/api/markets';
 import { formatUsd } from '../lib/format';
-import type { MarketSignalResponse, PriceRow } from '../types/market';
+import type { MarketSignalResponse } from '../types/market';
 
 const SYMBOL = 'xau';
-// The committed static dataset spans 2004-2026 (5500+ trading-day rows, not calendar days --
-// weekends/holidays aren't included). Rendering the full series on every mount is unnecessary
-// render weight for a chart whose purpose is recent trend context next to the direction signal,
-// so we slice to the most recent CHART_WINDOW_ROWS rows (roughly 1.5 years) client-side after
-// fetch. Note this slice only reduces render cost, not network cost: the full ~520KB /history
-// payload is still fetched in full on every cache miss. The real mitigation for repeat-visit
-// network cost is Phase 2's `Cache-Control: public, max-age=3600` header on the /history route
-// (repeat visits within an hour are served from cache, not refetched) -- we deliberately did not
-// add a `?days=`/`?limit=` backend query param, since that's out of scope for what this one
-// chart needs.
-const CHART_WINDOW_ROWS = 365;
+const TRADINGVIEW_SYMBOL = 'OANDA:XAUUSD';
 
 type FetchStatus = 'loading' | 'error' | 'ready';
 
@@ -28,10 +17,6 @@ export function MarketSignalPage() {
   const [signalStatus, setSignalStatus] = useState<FetchStatus>('loading');
   const [signal, setSignal] = useState<MarketSignalResponse | null>(null);
   const [signalError, setSignalError] = useState<string | undefined>(undefined);
-
-  const [historyStatus, setHistoryStatus] = useState<FetchStatus>('loading');
-  const [history, setHistory] = useState<PriceRow[]>([]);
-  const [historyError, setHistoryError] = useState<string | undefined>(undefined);
 
   const [requestId, setRequestId] = useState(0);
 
@@ -56,29 +41,7 @@ export function MarketSignalPage() {
     };
   }, [requestId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setHistoryStatus('loading');
-
-    fetchMarketHistory(SYMBOL)
-      .then((result) => {
-        if (cancelled) return;
-        setHistory(result);
-        setHistoryStatus('ready');
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setHistoryError(err instanceof Error ? err.message : 'Failed to load price history.');
-        setHistoryStatus('error');
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [requestId]);
-
   const retry = () => setRequestId((n) => n + 1);
-  const chartData = history.slice(-CHART_WINDOW_ROWS);
 
   // Fold the top-level /signal fetch's own loading/error state together with each section's
   // independent SectionResult failure, so DirectionSignal/FundamentalsPanel/MarketNewsList
@@ -116,18 +79,7 @@ export function MarketSignalPage() {
         </p>
       </div>
 
-      {historyStatus === 'loading' ? (
-        <div className="h-72 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
-      ) : historyStatus === 'error' ? (
-        <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-          <p style={{ color: 'var(--red)' }}>{historyError}</p>
-          <PillButton onClick={retry} className="mt-2 text-xs">
-            Retry
-          </PillButton>
-        </div>
-      ) : (
-        <PriceChart data={chartData} />
-      )}
+      <TradingViewChart symbol={TRADINGVIEW_SYMBOL} />
 
       <div className="space-y-2">
         <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
