@@ -25,8 +25,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm space-y-4">
-      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+    <div className="page-enter mx-auto max-w-sm space-y-4">
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
         Log in
       </h1>
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -36,8 +36,9 @@ export function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-          className="w-full rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          aria-label="Email"
+          className="w-full rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
+          style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
         />
         <input
           type="password"
@@ -45,11 +46,12 @@ export function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          className="w-full rounded border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+          aria-label="Password"
+          className="w-full rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
+          style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
         />
         {error ? (
-          <p className="text-xs" style={{ color: 'var(--status-critical)' }}>
+          <p className="text-xs" style={{ color: 'var(--red)' }}>
             {error}
           </p>
         ) : null}
@@ -57,9 +59,9 @@ export function LoginPage() {
           {submitting ? 'Logging in...' : 'Log in'}
         </PillButton>
       </form>
-      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-xs" style={{ color: 'var(--muted)' }}>
         Don't have an account?{' '}
-        <Link to="/signup" style={{ color: 'var(--accent)' }}>
+        <Link to="/signup" style={{ color: 'var(--green)' }}>
           Sign up
         </Link>
       </p>

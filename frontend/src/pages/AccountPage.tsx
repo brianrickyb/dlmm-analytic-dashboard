@@ -65,25 +65,25 @@ export function AccountPage() {
   }
 
   if (loading || status === 'loading') {
-    return <div className="h-24 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
+    return <div className="h-24 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />;
   }
 
   if (status === 'error') {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <p style={{ color: 'var(--status-critical)' }}>{errorMessage}</p>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <p style={{ color: 'var(--red)' }}>{errorMessage}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+    <div className="page-enter space-y-4">
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
         My Account
       </h1>
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Signed in as</p>
-        <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <p style={{ color: 'var(--muted)' }}>Signed in as</p>
+        <p className="font-semibold" style={{ color: 'var(--text)' }}>
           {email}
         </p>
       </div>

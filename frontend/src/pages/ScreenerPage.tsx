@@ -80,25 +80,25 @@ export function ScreenerPage() {
   }, [pumpRequestId]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+    <div className="page-enter space-y-6">
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
         Screener
       </h1>
-      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+      <p className="text-sm" style={{ color: 'var(--muted)' }}>
         Three independent signals: current futures market positioning on major pairs, coins
         seeing a spike in search interest, and freshly created pools showing an unusual price
         move. None of these panels is investment advice — see the FAQ for how to read each term.
       </p>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
           Market Positioning
         </h2>
         {majorsStatus === 'loading' ? (
-          <div className="h-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div className="h-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
         ) : majorsStatus === 'error' ? (
-          <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-            <p style={{ color: 'var(--status-critical)' }}>{majorsError}</p>
+          <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+            <p style={{ color: 'var(--red)' }}>{majorsError}</p>
             <PillButton onClick={() => setMajorsRequestId((n) => n + 1)} className="mt-2 text-xs">
               Retry
             </PillButton>
@@ -109,7 +109,7 @@ export function ScreenerPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
           Trending / Narrative Watch
         </h2>
         <TrendingWatch
@@ -121,10 +121,10 @@ export function ScreenerPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
           Pump Watch
         </h2>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs" style={{ color: 'var(--muted)' }}>
           Pools created in the last 72 hours with a 6h price move of 25%+ and meaningful volume —
           computed from raw on-chain data across all networks GeckoTerminal indexes, not a
           third-party trending list. A "News" tag means a recent (last 48h) article was found for

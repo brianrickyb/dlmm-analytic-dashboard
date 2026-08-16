@@ -36,19 +36,19 @@ export function MyPositionsPage() {
 
   if (!connected) {
     return (
-      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-sm" style={{ color: 'var(--muted)' }}>
         Connect a wallet to see your positions.
       </p>
     );
   }
 
   if (status === 'loading') {
-    return <div className="h-24 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />;
+    return <div className="h-24 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />;
   }
 
   if (status === 'error') {
     return (
-      <p className="text-sm" style={{ color: 'var(--status-critical)' }}>
+      <p className="text-sm" style={{ color: 'var(--red)' }}>
         {errorMessage}
       </p>
     );
@@ -56,23 +56,23 @@ export function MyPositionsPage() {
 
   if (positions.length === 0) {
     return (
-      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-sm" style={{ color: 'var(--muted)' }}>
         No positions yet.
       </p>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+    <div className="page-enter space-y-3">
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
         My Positions
       </h1>
       <ul className="space-y-1.5">
         {positions.map((position) => (
-          <li key={position.positionAddress} className="rounded-xl border p-3 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-            <p style={{ color: 'var(--text-primary)' }}>Pool: {position.poolAddress}</p>
-            <p style={{ color: 'var(--text-muted)' }}>Position: {position.positionAddress}</p>
-            <a href={`https://solscan.io/account/${position.positionAddress}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>
+          <li key={position.positionAddress} className="rounded-xl border p-3 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+            <p style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>Pool: {position.poolAddress}</p>
+            <p style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>Position: {position.positionAddress}</p>
+            <a href={`https://solscan.io/account/${position.positionAddress}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: 'var(--green)' }}>
               View on Solscan
             </a>
           </li>

@@ -17,7 +17,7 @@ class DirectionModel:
         self.meta = json.loads(meta_path.read_text())
         self.feature_columns: list[str] = self.meta["feature_columns"]
 
-    def predict(self, prices: list[dict]) -> tuple[str, float]:
+    def predict(self, prices: list[dict]) -> tuple[str, float, dict[str, float]]:
         df = pd.DataFrame(prices)
         df["Date"] = pd.to_datetime(df["date"])
         df = df.rename(
@@ -36,14 +36,16 @@ class DirectionModel:
                 f"{GAP_THRESHOLD_DAYS} days; need at least {MA_LONG_PERIOD})."
             )
 
+        features = {col: float(latest.iloc[0][col]) for col in self.feature_columns}
+
         proba = self.model.predict_proba(latest)[0]
         classes = list(self.model.classes_)
         bullish_idx = classes.index(1.0)
         bullish_proba = float(proba[bullish_idx])
 
         if bullish_proba >= 0.5:
-            return "bullish", bullish_proba
-        return "bearish", 1 - bullish_proba
+            return "bullish", bullish_proba, features
+        return "bearish", 1 - bullish_proba, features
 
 
 _direction_model: DirectionModel | None = None

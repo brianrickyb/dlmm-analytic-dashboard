@@ -11,7 +11,7 @@ def predict_direction(
     req: DirectionRequest, model: DirectionModel = Depends(get_direction_model)
 ) -> DirectionResponse:
     try:
-        direction, confidence = model.predict([p.model_dump() for p in req.prices])
+        direction, confidence, features = model.predict([p.model_dump() for p in req.prices])
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    return DirectionResponse(direction=direction, confidence=confidence)
+    return DirectionResponse(direction=direction, confidence=confidence, **features)

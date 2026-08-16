@@ -30,7 +30,7 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
     return (
       <div className="space-y-1.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div key={i} className="h-16 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
         ))}
       </div>
     );
@@ -38,8 +38,8 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
 
   if (status === 'error') {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Failed to load news.'}</p>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <p style={{ color: 'var(--red)' }}>{errorMessage ?? 'Failed to load news.'}</p>
         <PillButton onClick={onRetry} className="mt-2 text-xs">
           Retry
         </PillButton>
@@ -49,7 +49,7 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
 
   if (posts.length === 0) {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-muted)' }}>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--muted)' }}>
         No news matches the current filter.
       </div>
     );
@@ -60,11 +60,11 @@ export function NewsList({ status, posts, errorMessage, onRetry }: NewsListProps
       {posts.map((post) => {
         const badge = SENTIMENT_BADGE[post.sentiment] ?? SENTIMENT_BADGE.neutral;
         return (
-          <li key={post.id} className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-            <a href={post.url} target="_blank" rel="noreferrer" className="font-semibold hover:underline" style={{ color: 'var(--text-primary)' }}>
+          <li key={post.id} className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+            <a href={post.url} target="_blank" rel="noreferrer" className="font-semibold hover:underline" style={{ color: 'var(--text)' }}>
               {post.title}
             </a>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--muted)' }}>
               <Badge variant={badge.variant}>{badge.label}</Badge>
               <span>{post.sourceTitle}</span>
               <span>&middot;</span>

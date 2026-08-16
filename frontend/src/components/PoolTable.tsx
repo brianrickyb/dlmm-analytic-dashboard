@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PoolWithStats } from '../types/pool';
 import { formatPercent, formatUsdCompact } from '../lib/format';
@@ -6,6 +6,10 @@ import { Tooltip } from './Tooltip';
 
 type SortKey = 'tvlUsd' | 'volume24hUsd' | 'feeApr24h';
 
+// The mockup's per-row 7-day sparkline column is intentionally omitted here --
+// /api/pools has no per-pool historical array today, and fetching each of 50
+// pools' full history just for a list-page decoration would be wasteful. This
+// is a deferred backend enhancement, not an oversight.
 const columns: { key: SortKey; label: string; termKey?: string }[] = [
   { key: 'tvlUsd', label: 'TVL', termKey: 'tvl' },
   { key: 'volume24hUsd', label: 'Volume (24h)' },
@@ -14,10 +18,24 @@ const columns: { key: SortKey; label: string; termKey?: string }[] = [
 
 const GRID_COLS = 'grid-cols-[2fr_1fr_1fr_1fr]';
 
-export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
-  const [sortKey, setSortKey] = useState<SortKey>('tvlUsd');
+export function PoolTable({
+  pools,
+  sortKey: externalSortKey,
+  onSortChange,
+}: {
+  pools: PoolWithStats[];
+  sortKey?: SortKey;
+  onSortChange?: (key: SortKey) => void;
+}) {
+  const [internalSortKey, setInternalSortKey] = useState<SortKey>('tvlUsd');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
+
+  const sortKey = externalSortKey ?? internalSortKey;
+
+  useEffect(() => {
+    if (externalSortKey !== undefined) setSortDir('desc');
+  }, [externalSortKey]);
 
   const sorted = useMemo(() => {
     const copy = [...pools];
@@ -32,7 +50,8 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
     if (key === sortKey) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      setSortKey(key);
+      setInternalSortKey(key);
+      onSortChange?.(key);
       setSortDir('desc');
     }
   }
@@ -41,7 +60,7 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
     <div className="overflow-x-auto">
       <div className="space-y-1.5 text-sm">
         <div className={`grid ${GRID_COLS} gap-4 border border-transparent px-4`}>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+          <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Pool
           </span>
           {columns.map((col) => (
@@ -49,8 +68,8 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
               key={col.key}
               type="button"
               onClick={() => toggleSort(col.key)}
-              className="text-right text-xs font-medium"
-              style={{ color: 'var(--text-muted)' }}
+              className="text-right text-[10px] font-medium uppercase tracking-wider"
+              style={{ color: 'var(--muted)' }}
             >
               {col.termKey ? (
                 <Tooltip termKey={col.termKey} interactive={false}>
@@ -76,27 +95,27 @@ export function PoolTable({ pools }: { pools: PoolWithStats[] }) {
                 navigate(`/pools/${pool.id}`);
               }
             }}
-            className={`grid ${GRID_COLS} cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 hover:opacity-80`}
-            style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+            className={`grid ${GRID_COLS} cursor-pointer items-center gap-4 rounded-xl border px-4 py-3`}
+            style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
           >
             <div>
-              <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <div className="font-semibold" style={{ color: 'var(--text)' }}>
                 {pool.name}
               </div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <div className="text-xs" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
                 <Tooltip termKey="binStep" interactive={false}>
                   bin step
                 </Tooltip>{' '}
                 {pool.binStep} · fee {(pool.baseFeeBps / 100).toFixed(2)}%
               </div>
             </div>
-            <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
               {formatUsdCompact(pool.stats.tvlUsd)}
             </div>
-            <div className="text-right tabular-nums" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-right tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
               {formatUsdCompact(pool.stats.volume24hUsd)}
             </div>
-            <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--series-green)' }}>
+            <div className="text-right tabular-nums font-semibold" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
               {formatPercent(pool.stats.feeApr24h)}
             </div>
           </div>

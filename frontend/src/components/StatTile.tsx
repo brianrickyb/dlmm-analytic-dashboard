@@ -13,19 +13,22 @@ export function StatTile({
 }) {
   if (variant === 'hero') {
     return (
-      <div className="rounded-full px-4 py-3" style={{ background: 'var(--accent-bg)', color: accent ?? 'var(--accent)' }}>
-        <div className="text-xs">{label}</div>
-        <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums">{value}</div>
+      <div className="rounded-xl px-4 py-3" style={{ background: 'var(--green-subtle)', color: accent ?? 'var(--green)' }}>
+        <div className="text-xs" style={{ color: 'var(--muted)' }}>{label}</div>
+        <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums" style={{ fontFamily: 'var(--font-mono)' }}>{value}</div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+      <div className="text-xs" style={{ color: 'var(--muted)' }}>
         {label}
       </div>
-      <div className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums" style={{ color: accent ?? 'var(--text-primary)' }}>
+      <div
+        className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums"
+        style={{ color: accent ?? 'var(--text)', fontFamily: 'var(--font-mono)' }}
+      >
         {value}
       </div>
     </div>

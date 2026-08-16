@@ -24,16 +24,16 @@ export function RelatedNews({ status, tokens, errorMessage, onRetry }: RelatedNe
   }
 
   return (
-    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <div className="mb-4 text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+      <div className="mb-4 text-sm font-semibold" style={{ color: 'var(--text)' }}>
         Related news
       </div>
 
       {status === 'loading' ? (
-        <div className="h-16 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-page)' }} />
+        <div className="h-16 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }} />
       ) : status === 'error' ? (
         <div>
-          <p className="text-sm" style={{ color: 'var(--status-critical)' }}>
+          <p className="text-sm" style={{ color: 'var(--red)' }}>
             {errorMessage ?? 'Failed to load related news.'}
           </p>
           <PillButton onClick={onRetry} className="mt-2 text-xs">
@@ -44,11 +44,11 @@ export function RelatedNews({ status, tokens, errorMessage, onRetry }: RelatedNe
         <div className="space-y-3">
           {tokens.map((token) => (
             <div key={token.symbol} className="space-y-1.5">
-              <h3 className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              <h3 className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
                 {token.symbol}
               </h3>
               {token.articles.length === 0 ? (
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>
                   No recent coverage.
                 </p>
               ) : (
@@ -57,18 +57,18 @@ export function RelatedNews({ status, tokens, errorMessage, onRetry }: RelatedNe
                     <li
                       key={article.url}
                       className="rounded-xl border p-3"
-                      style={{ borderColor: 'var(--border)', background: 'var(--surface-page)' }}
+                      style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}
                     >
                       <a
                         href={article.url}
                         target="_blank"
                         rel="noreferrer"
                         className="text-sm font-semibold hover:underline"
-                        style={{ color: 'var(--text-primary)' }}
+                        style={{ color: 'var(--text)' }}
                       >
                         {article.title}
                       </a>
-                      <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <div className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>
                         {timeAgo(article.publishedAt)}
                       </div>
                     </li>

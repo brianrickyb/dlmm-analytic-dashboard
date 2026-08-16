@@ -23,8 +23,9 @@ export function NewsFilters({ currencies, onCurrenciesChange, source, onSourceCh
         value={currencies}
         onChange={(e) => onCurrenciesChange(e.target.value.toUpperCase())}
         placeholder="Filter by coin, e.g. BTC,SOL"
-        className="rounded border px-3 py-1.5 text-sm sm:w-64"
-        style={{ borderColor: 'var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}
+        aria-label="Filter news by coin"
+        className="rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)] sm:w-64"
+        style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)', fontFamily: 'var(--font-mono)' }}
       />
       <div className="flex flex-wrap gap-2">
         {SOURCES.map((s) => {
@@ -34,11 +35,12 @@ export function NewsFilters({ currencies, onCurrenciesChange, source, onSourceCh
               key={s.label}
               type="button"
               onClick={() => onSourceChange(s.value)}
+              aria-pressed={active}
               className="rounded-full border px-3 py-1 text-xs font-bold"
               style={{
                 borderColor: active ? 'transparent' : 'var(--border)',
-                background: active ? 'var(--accent)' : 'var(--surface-1)',
-                color: active ? 'var(--accent-fg)' : 'var(--text-secondary)',
+                background: active ? 'var(--green)' : 'var(--card)',
+                color: active ? 'var(--green-fg)' : 'var(--muted)',
               }}
             >
               {s.label}

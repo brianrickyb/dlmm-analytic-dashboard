@@ -34,28 +34,28 @@ export function NewsPage() {
   }, [currencies, source, requestId]);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+    <div className="page-enter space-y-4">
+      <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
         Crypto News
       </h1>
-      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+      <p className="text-sm" style={{ color: 'var(--muted)' }}>
         Live headlines aggregated from CoinDesk, Cointelegraph, The Block, and Decrypt. New to
         reading crypto news? See "How to read crypto news" below.
       </p>
-      <details className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <summary className="cursor-pointer font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <details className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <summary className="cursor-pointer font-semibold" style={{ color: 'var(--text)' }}>
           How to read crypto news
         </summary>
-        <div className="mt-3 space-y-2" style={{ color: 'var(--text-secondary)' }}>
+        <div className="mt-3 space-y-2" style={{ color: 'var(--muted)' }}>
           <p>
-            <strong style={{ color: 'var(--text-primary)' }}>Bullish</strong> means sentiment that
-            price will rise; <strong style={{ color: 'var(--text-primary)' }}>bearish</strong> means
+            <strong style={{ color: 'var(--text)' }}>Bullish</strong> means sentiment that
+            price will rise; <strong style={{ color: 'var(--text)' }}>bearish</strong> means
             sentiment it will fall.
           </p>
           <p>
-            <strong style={{ color: 'var(--text-primary)' }}>FUD</strong> (Fear, Uncertainty, Doubt)
+            <strong style={{ color: 'var(--text)' }}>FUD</strong> (Fear, Uncertainty, Doubt)
             is news that spreads fear and can trigger panic selling.{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>FOMO</strong> (Fear Of Missing Out) is
+            <strong style={{ color: 'var(--text)' }}>FOMO</strong> (Fear Of Missing Out) is
             the urge to buy quickly so you don't miss a rally — it often leads people to buy right
             at the peak.
           </p>

@@ -4,13 +4,61 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth/AuthContext';
 import { WalletConnectButton } from './WalletConnectButton';
 
-const NAV_LINKS = [
-  { to: '/', label: 'Pools' },
-  { to: '/news', label: 'News' },
-  { to: '/screener', label: 'Screener' },
-  { to: '/markets/xau', label: 'Gold Signal' },
-  { to: '/faq', label: 'FAQ' },
-  { to: '/positions', label: 'My Positions' },
+const NAV_LINKS: { to: string; label: string; icon: ReactNode }[] = [
+  {
+    to: '/',
+    label: 'Pools',
+    icon: (
+      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    to: '/news',
+    label: 'News',
+    icon: (
+      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2M18 14h-8M15 18h-5M10 6h8v4h-8V6z" />
+      </svg>
+    ),
+  },
+  {
+    to: '/screener',
+    label: 'Screener',
+    icon: (
+      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 20V10M12 20V4M6 20v-6" />
+      </svg>
+    ),
+  },
+  {
+    to: '/markets/xau',
+    label: 'Gold Signal',
+    icon: (
+      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+      </svg>
+    ),
+  },
+  {
+    to: '/faq',
+    label: 'FAQ',
+    icon: (
+      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
+      </svg>
+    ),
+  },
+  {
+    to: '/positions',
+    label: 'My Positions',
+    icon: (
+      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" />
+      </svg>
+    ),
+  },
 ];
 
 const DRAWER_ID = 'mobile-nav-drawer';
@@ -19,11 +67,13 @@ const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled
 function SidebarLink({
   to,
   label,
+  icon,
   onNavigate,
   truncate = false,
 }: {
   to: string;
   label: ReactNode;
+  icon?: ReactNode;
   onNavigate: () => void;
   truncate?: boolean;
 }) {
@@ -35,13 +85,20 @@ function SidebarLink({
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       title={truncate && typeof label === 'string' ? label : undefined}
-      className={`min-w-0 rounded-full px-3 py-2 text-sm font-medium ${truncate ? 'truncate' : ''}`}
+      className={`relative flex min-w-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm ${active ? 'font-semibold' : 'font-normal'}`}
       style={{
-        background: active ? 'var(--accent-bg)' : 'transparent',
-        color: active ? 'var(--accent)' : 'var(--text-secondary)',
+        background: active ? 'var(--green-subtle)' : 'transparent',
+        color: active ? 'var(--green)' : 'var(--muted)',
       }}
     >
-      {label}
+      {active && (
+        <span
+          className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-r-sm"
+          style={{ background: 'var(--green)' }}
+        />
+      )}
+      {icon && <span className="flex-shrink-0">{icon}</span>}
+      <span className={`min-w-0 flex-1 ${truncate ? 'truncate' : ''}`}>{label}</span>
     </Link>
   );
 }
@@ -50,14 +107,19 @@ function Wordmark() {
   return (
     <>
       <span
-        className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold"
-        style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}
+        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-sm font-extrabold"
+        style={{ background: 'linear-gradient(135deg, var(--green) 0%, var(--green-gradient-end) 100%)', color: 'var(--green-fg)', fontFamily: 'var(--font-mono)' }}
       >
         D
       </span>
-      <span className="text-sm font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-        DLMM Pool Analytics
-      </span>
+      <div>
+        <div className="text-xs font-bold leading-tight" style={{ color: 'var(--text)' }}>
+          DLMM Pool Analytics
+        </div>
+        <div className="text-[10px] leading-tight" style={{ color: 'var(--muted)' }}>
+          Meteora &middot; Solana
+        </div>
+      </div>
     </>
   );
 }
@@ -67,12 +129,21 @@ function SidebarContent({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <div className="flex h-full flex-col p-4">
-      <Link to="/" onClick={onNavigate} className="mb-6 flex items-center gap-2">
+      <Link to="/" onClick={onNavigate} className="mb-4 flex items-center gap-2.5">
         <Wordmark />
       </Link>
-      <nav className="flex flex-1 flex-col gap-1">
+      <div className="mb-2 flex items-center gap-1.5 px-1">
+        <span
+          className="inline-block h-1.5 w-1.5 rounded-full"
+          style={{ background: 'var(--green)', animation: 'pulse-dot 2s infinite' }}
+        />
+        <span className="text-[10px] tracking-wide" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+          LIVE &middot; mainnet-beta
+        </span>
+      </div>
+      <nav className="flex flex-1 flex-col gap-0.5">
         {NAV_LINKS.map((link) => (
-          <SidebarLink key={link.to} to={link.to} label={link.label} onNavigate={onNavigate} />
+          <SidebarLink key={link.to} to={link.to} label={link.label} icon={link.icon} onNavigate={onNavigate} />
         ))}
       </nav>
       <div className="mt-auto flex flex-col gap-2 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
@@ -152,14 +223,14 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen md:pl-56">
       <aside
         className="fixed inset-y-0 left-0 z-20 hidden w-56 border-r md:block"
-        style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+        style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
       >
         <SidebarContent onNavigate={() => {}} />
       </aside>
 
       <header
         className="flex items-center justify-between border-b px-4 py-3 md:hidden"
-        style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+        style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
         inert={drawerOpen}
       >
         <Link to="/" className="flex items-center gap-2">
@@ -174,9 +245,9 @@ export function Layout({ children }: { children: ReactNode }) {
           aria-controls={DRAWER_ID}
           className="flex h-9 w-9 flex-col items-center justify-center gap-1"
         >
-          <span className="h-0.5 w-5" style={{ background: 'var(--text-primary)' }} />
-          <span className="h-0.5 w-5" style={{ background: 'var(--text-primary)' }} />
-          <span className="h-0.5 w-5" style={{ background: 'var(--text-primary)' }} />
+          <span className="h-0.5 w-5" style={{ background: 'var(--text)' }} />
+          <span className="h-0.5 w-5" style={{ background: 'var(--text)' }} />
+          <span className="h-0.5 w-5" style={{ background: 'var(--text)' }} />
         </button>
       </header>
 
@@ -192,7 +263,7 @@ export function Layout({ children }: { children: ReactNode }) {
           className="absolute inset-y-0 left-0 w-64 border-r"
           style={{
             borderColor: 'var(--border)',
-            background: 'var(--surface-1)',
+            background: 'var(--surface)',
             transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 200ms ease-out',
           }}

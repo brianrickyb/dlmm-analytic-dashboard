@@ -16,18 +16,20 @@ function CustomTooltip({ active, payload, label, valueFormatter }: any) {
   return (
     <div
       className="rounded-lg border px-3 py-2 text-xs shadow-sm"
-      style={{ background: 'var(--surface-1)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+      style={{ background: 'var(--card2)', borderColor: 'var(--border2)', color: 'var(--text)' }}
     >
-      <div style={{ color: 'var(--text-muted)' }}>{formatDate(label)}</div>
-      <div className="font-medium tabular-nums">{valueFormatter ? valueFormatter(value) : value}</div>
+      <div style={{ color: 'var(--muted)' }}>{formatDate(label)}</div>
+      <div className="font-medium tabular-nums" style={{ fontFamily: 'var(--font-mono)' }}>
+        {valueFormatter ? valueFormatter(value) : value}
+      </div>
     </div>
   );
 }
 
 export function HistoryChart({ data, dataKey, label, color, valueFormatter }: HistoryChartProps) {
   return (
-    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+      <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--text)' }}>
         {label}
       </div>
       <ResponsiveContainer width="100%" height={200}>
@@ -38,17 +40,17 @@ export function HistoryChart({ data, dataKey, label, color, valueFormatter }: Hi
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="var(--gridline)" vertical={false} strokeDasharray="0" />
+          <CartesianGrid stroke="var(--border)" vertical={false} strokeDasharray="0" />
           <XAxis
             dataKey="snapshotAt"
             tickFormatter={formatDate}
-            tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
-            axisLine={{ stroke: 'var(--axis)' }}
+            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+            axisLine={{ stroke: 'var(--border2)' }}
             tickLine={false}
             minTickGap={40}
           />
           <YAxis
-            tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
+            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
             axisLine={false}
             tickLine={false}
             width={56}

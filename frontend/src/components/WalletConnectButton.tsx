@@ -60,9 +60,30 @@ export function WalletConnectButton() {
 
   if (connected && publicKey) {
     return (
-      <PillButton onClick={() => disconnect()} className="text-xs">
-        {shortenAddress(publicKey.toBase58())}
-      </PillButton>
+      <div
+        className="flex items-center gap-2 rounded-lg px-3 py-2"
+        style={{ background: 'var(--green-subtle)', border: '1px solid var(--border)' }}
+      >
+        <div
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md"
+          style={{ background: 'var(--green-subtle)', border: '1px solid var(--green-glow)' }}
+        >
+          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth={2}>
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[9px]" style={{ color: 'var(--muted)' }}>CONNECTED</div>
+          <button
+            type="button"
+            onClick={() => disconnect()}
+            className="truncate text-[11px]"
+            style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}
+          >
+            {shortenAddress(publicKey.toBase58())}
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -72,14 +93,14 @@ export function WalletConnectButton() {
         {connecting ? 'Connecting...' : 'Connect Wallet'}
       </PillButton>
       {error ? (
-        <p className="absolute bottom-full left-0 mb-1 whitespace-nowrap text-xs" style={{ color: 'var(--status-critical)' }}>
+        <p className="absolute bottom-full left-0 mb-1 whitespace-nowrap text-xs" style={{ color: 'var(--red)' }}>
           {error}
         </p>
       ) : null}
       {pickerOpen ? (
         <div
           className="absolute bottom-full left-0 z-10 mb-1 rounded-xl border text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}
+          style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
         >
           {wallets.map((w) => {
             const installed = w.readyState === WalletReadyState.Installed || w.readyState === WalletReadyState.Loadable;
@@ -89,7 +110,7 @@ export function WalletConnectButton() {
                 type="button"
                 onClick={() => handleSelect(w)}
                 className="block w-full px-3 py-1.5 text-left"
-                style={{ color: 'var(--text-primary)' }}
+                style={{ color: 'var(--text)' }}
               >
                 {w.adapter.name}
               </button>
@@ -100,7 +121,7 @@ export function WalletConnectButton() {
                 target="_blank"
                 rel="noreferrer"
                 className="flex w-full items-center justify-between gap-3 px-3 py-1.5"
-                style={{ color: 'var(--text-muted)' }}
+                style={{ color: 'var(--muted)' }}
               >
                 <span>{w.adapter.name}</span>
                 <span className="text-xs">Install ↗</span>
