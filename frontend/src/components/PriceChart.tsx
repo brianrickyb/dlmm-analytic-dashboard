@@ -16,47 +16,49 @@ function CustomTooltip({ active, payload, label }: any) {
   return (
     <div
       className="rounded-lg border px-3 py-2 text-xs shadow-sm"
-      style={{ background: 'var(--surface-1)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+      style={{ background: 'var(--card2)', borderColor: 'var(--border2)', color: 'var(--text)' }}
     >
-      <div style={{ color: 'var(--text-muted)' }}>{formatChartDate(label)}</div>
-      <div className="font-medium tabular-nums">{formatUsd(value)}</div>
+      <div style={{ color: 'var(--muted)' }}>{formatChartDate(label)}</div>
+      <div className="font-medium tabular-nums" style={{ fontFamily: 'var(--font-mono)' }}>
+        {formatUsd(value)}
+      </div>
     </div>
   );
 }
 
 export function PriceChart({ data }: { data: PriceRow[] }) {
   return (
-    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-      <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+    <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+      <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--text)' }}>
         XAU/USD Price
       </div>
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
           <defs>
             <linearGradient id="fill-close" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.15} />
-              <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--series-blue)" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="var(--series-blue)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="var(--gridline)" vertical={false} strokeDasharray="0" />
+          <CartesianGrid stroke="var(--border)" vertical={false} strokeDasharray="0" />
           <XAxis
             dataKey="date"
             tickFormatter={formatChartDate}
-            tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
-            axisLine={{ stroke: 'var(--axis)' }}
+            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+            axisLine={{ stroke: 'var(--border2)' }}
             tickLine={false}
             minTickGap={60}
           />
           <YAxis
             domain={['auto', 'auto']}
-            tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
+            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
             axisLine={false}
             tickLine={false}
             width={64}
             tickFormatter={(v) => formatUsd(v)}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Area type="monotone" dataKey="close" stroke="var(--accent)" strokeWidth={2} fill="url(#fill-close)" dot={false} />
+          <Area type="monotone" dataKey="close" stroke="var(--series-blue)" strokeWidth={2} fill="url(#fill-close)" dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>

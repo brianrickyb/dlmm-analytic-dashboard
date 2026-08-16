@@ -19,7 +19,7 @@ export function FundamentalsPanel({ status, fundamentals, errorMessage, onRetry 
     return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-20 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+          <div key={i} className="h-20 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
         ))}
       </div>
     );
@@ -27,8 +27,8 @@ export function FundamentalsPanel({ status, fundamentals, errorMessage, onRetry 
 
   if (status === 'error' || !fundamentals) {
     return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <p style={{ color: 'var(--status-critical)' }}>{errorMessage ?? 'Fundamentals are unavailable right now.'}</p>
+      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <p style={{ color: 'var(--red)' }}>{errorMessage ?? 'Fundamentals are unavailable right now.'}</p>
         <PillButton onClick={onRetry} className="mt-2 text-xs">
           Retry
         </PillButton>
