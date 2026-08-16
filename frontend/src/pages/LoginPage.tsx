@@ -36,6 +36,7 @@ export function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
+          aria-label="Email"
           className="w-full rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
           style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
         />
@@ -45,6 +46,7 @@ export function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
+          aria-label="Password"
           className="w-full rounded border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--green)]"
           style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
         />
