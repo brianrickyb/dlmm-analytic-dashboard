@@ -2,7 +2,7 @@
   "name": "dlmm-analytic-dashboard",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+    "dev": "concurrently -n backend,frontend,ml-service -c blue,green,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"cd ml-service && uv run uvicorn app.main:app --reload --port 8000\""
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
