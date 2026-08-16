@@ -88,13 +88,13 @@ export function MarketSignalPage() {
   const newsStatus: FetchStatus = signalStatus === 'ready' && !signal?.news.data ? 'error' : signalStatus;
 
   return (
-    <div className="space-y-6">
+    <div className="page-enter space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
             XAU/USD Market Signal
           </h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>
             Gold price, an experimental ML direction signal, live gold/forex news sentiment, and
             macro fundamentals — all in one place.
           </p>
@@ -102,11 +102,11 @@ export function MarketSignalPage() {
         {signal?.price ? <StatTile label="Spot Price (XAU/USD)" value={formatUsd(signal.price.close)} variant="hero" /> : null}
       </div>
 
-      <div className="rounded-xl border-2 p-4 text-sm" style={{ borderColor: 'var(--status-critical)', background: 'var(--surface-1)' }}>
-        <p className="font-bold" style={{ color: 'var(--status-critical)' }}>
+      <div className="rounded-xl border-2 p-4 text-sm" style={{ borderColor: 'var(--red)', background: 'var(--card)' }}>
+        <p className="font-bold" style={{ color: 'var(--red)' }}>
           Not financial advice.
         </p>
-        <p className="mt-1" style={{ color: 'var(--text-secondary)' }}>
+        <p className="mt-1" style={{ color: 'var(--muted)' }}>
           Everything on this page — the direction signal, news sentiment, and fundamentals — is
           for informational and educational purposes only, not a recommendation to buy, sell, or
           hold any asset. The direction model's real backtested accuracy on its 5-day horizon
@@ -117,10 +117,10 @@ export function MarketSignalPage() {
       </div>
 
       {historyStatus === 'loading' ? (
-        <div className="h-72 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }} />
+        <div className="h-72 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
       ) : historyStatus === 'error' ? (
-        <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-          <p style={{ color: 'var(--status-critical)' }}>{historyError}</p>
+        <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+          <p style={{ color: 'var(--red)' }}>{historyError}</p>
           <PillButton onClick={retry} className="mt-2 text-xs">
             Retry
           </PillButton>
@@ -130,7 +130,7 @@ export function MarketSignalPage() {
       )}
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
           Direction Signal
         </h2>
         <DirectionSignal
@@ -142,7 +142,7 @@ export function MarketSignalPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
           Macro Fundamentals
         </h2>
         <FundamentalsPanel
@@ -154,7 +154,7 @@ export function MarketSignalPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
           Gold &amp; Forex News
         </h2>
         <MarketNewsList
@@ -165,13 +165,13 @@ export function MarketSignalPage() {
         />
       </div>
 
-      <details className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface-1)' }}>
-        <summary className="cursor-pointer font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <details className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+        <summary className="cursor-pointer font-semibold" style={{ color: 'var(--text)' }}>
           How this signal works
         </summary>
-        <div className="mt-3 space-y-2" style={{ color: 'var(--text-secondary)' }}>
+        <div className="mt-3 space-y-2" style={{ color: 'var(--muted)' }}>
           <p>
-            <strong style={{ color: 'var(--text-primary)' }}>Direction signal:</strong> a
+            <strong style={{ color: 'var(--text)' }}>Direction signal:</strong> a
             self-trained classifier (four technical indicators — RSI, moving-average crossover,
             momentum, volatility — computed from 22 years of daily XAU/USD prices), predicting
             whether the price will be higher 5 trading days out. Walk-forward evaluated on 5
@@ -180,12 +180,12 @@ export function MarketSignalPage() {
             is the honest, real result of the evaluation, not a placeholder.
           </p>
           <p>
-            <strong style={{ color: 'var(--text-primary)' }}>News sentiment:</strong> each
+            <strong style={{ color: 'var(--text)' }}>News sentiment:</strong> each
             headline's sentiment tag is generated by FinBERT (a model pretrained specifically on
             financial text), run against the headline only — not the full article.
           </p>
           <p>
-            <strong style={{ color: 'var(--text-primary)' }}>Fundamentals:</strong> the Fed funds
+            <strong style={{ color: 'var(--text)' }}>Fundamentals:</strong> the Fed funds
             rate, 10-year real yield, CPI, and a broad dollar index, sourced from the Federal
             Reserve's FRED database — commonly cited drivers of gold's price, shown for context,
             not as a combined score.
