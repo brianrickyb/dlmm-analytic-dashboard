@@ -3,6 +3,7 @@ import { PositioningTable } from '../components/PositioningTable';
 import { TrendingWatch } from '../components/TrendingWatch';
 import { PumpWatch } from '../components/PumpWatch';
 import { PillButton } from '../components/PillButton';
+import { TradingViewTickerTape } from '../components/TradingViewTickerTape';
 import { fetchMajors, fetchTrending, fetchPumpWatch } from '../lib/api/screener';
 import type { MajorsResponse, TrendingCoin, PumpCandidate } from '../types/screener';
 
@@ -89,6 +90,8 @@ export function ScreenerPage() {
         seeing a spike in search interest, and freshly created pools showing an unusual price
         move. None of these panels is investment advice — see the FAQ for how to read each term.
       </p>
+
+      <TradingViewTickerTape />
 
       <div className="space-y-2">
         <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
