@@ -14,4 +14,9 @@ def predict_direction(
         direction, confidence, features = model.predict([p.model_dump() for p in req.prices])
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    return DirectionResponse(direction=direction, confidence=confidence, **features)
+    return DirectionResponse(
+        direction=direction,
+        confidence=confidence,
+        model_data_through=model.data_through,
+        **features,
+    )

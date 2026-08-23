@@ -7,8 +7,16 @@ docs/superpowers/specs/2026-08-13-xau-market-signal-design.md). The
 threshold is deliberately set above the dataset's 9-day gap (an ordinary
 extended-holiday-scale gap) but below its 33-day gap (a genuinely severe
 one), so the current live segment stays large enough for the model's
-50-row warmup. A rolling indicator must not silently blend pre-gap and
-post-gap prices as if they were consecutive trading days.
+50-row warmup. A rolling indicator must not silently blend pre-gap and post-gap
+prices as if they were consecutive trading days.
+
+CLOSE-ONLY CONSTRAINT: the backend's merged history (backend/src/services/
+xauHistory.ts) appends live rows synthesized as open=high=low=close with
+volume=0 from Alpha Vantage's value-only GOLD endpoint — only their Close is
+real data. Every feature below therefore MUST stay derived from Close; a
+High/Low/Volume-based indicator would silently consume fabricated values on
+recent rows unless it restricts itself to rows before the backend's
+`estimatedFrom` boundary.
 """
 from __future__ import annotations
 

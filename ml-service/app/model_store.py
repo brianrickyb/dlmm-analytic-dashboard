@@ -16,6 +16,10 @@ class DirectionModel:
         self.model = joblib.load(model_path)
         self.meta = json.loads(meta_path.read_text())
         self.feature_columns: list[str] = self.meta["feature_columns"]
+        # Last date of the data the model was trained on (train.py writes it). Surfaced
+        # through /predict/direction so the UI can show "model data through <date>" —
+        # a stale artifact is a fact users should see, not a hidden detail.
+        self.data_through: str | None = self.meta.get("training_data_max_date")
 
     def predict(self, prices: list[dict]) -> tuple[str, float, dict[str, float]]:
         df = pd.DataFrame(prices)

@@ -15,11 +15,12 @@ class PricePoint(BaseModel):
 class DirectionRequest(BaseModel):
     prices: list[PricePoint] = Field(
         min_length=1,
-        description="Trailing daily OHLCV rows, ascending by date. Send the ENTIRE current "
-        "segment (every row since the most recent gap of more than GAP_THRESHOLD_DAYS days "
-        "in the source data) -- clipping to exactly the 50-row warmup minimum produces a "
-        "different RSI than training-time computation, since RSI is a recursive calculation "
-        "seeded at the start of its input window, not a fixed-window statistic.",
+        description="Trailing daily OHLCV rows, ascending by date. The backend sends a 260-row "
+        "window (see markets.ts DIRECTION_INPUT_ROWS): comfortably above the 50-row warmup, so "
+        "fixed-window features are exact and Wilder-RSI's recursive seeding has decayed below "
+        "1e-8 relative influence. Do NOT clip to exactly the 50-row minimum — that leaves ~2.5% "
+        "of the RSI weight on the seeding, producing a different value than training-time "
+        "computation over the full segment.",
     )
 
 
@@ -30,6 +31,9 @@ class DirectionResponse(BaseModel):
     ma_crossover: float
     momentum_10: float
     volatility_14: float
+    # Date (YYYY-MM-DD) of the newest row in the model's training data; null for artifacts
+    # trained before this field existed.
+    model_data_through: str | None = None
 
 
 class SentimentRequest(BaseModel):
