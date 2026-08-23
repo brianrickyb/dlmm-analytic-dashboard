@@ -56,12 +56,33 @@ async function main() {
     process.exit(1);
   }
 
+  const supabaseAdmin = createSupabaseAdmin(url, secretKey);
   const result = await runSnapshotPoolTvl({
     meteoraService: createMeteoraService(),
-    supabaseAdmin: createSupabaseAdmin(url, secretKey),
+    supabaseAdmin,
   });
 
   console.log(`TVL snapshot done: ${result.succeeded} succeeded, ${result.failed} failed.`);
+
+  // Meteora exposes no historical TVL, so a cron-missed day leaves a PERMANENT hole in
+  // pool_tvl_daily — there is nothing to backfill from. If yesterday's rows are absent
+  // right after a successful run today, say so loudly instead of letting the history
+  // charts silently grow a gap. (Expected noise on the very first runs of a fresh table.)
+  if (result.succeeded > 0) {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const { count, error } = await supabaseAdmin
+      .from('pool_tvl_daily')
+      .select('pool_address', { count: 'exact', head: true })
+      .eq('day', yesterday);
+    if (!error && (count ?? 0) === 0) {
+      console.warn(
+        `No TVL snapshot exists for ${yesterday}. Meteora provides no historical TVL, so this ` +
+          'gap cannot be backfilled — pool history charts will show a missing day. ' +
+          'Check that the cron schedule actually ran yesterday.',
+      );
+    }
+  }
+
   process.exit(result.failed > 0 && result.succeeded === 0 ? 1 : 0);
 }
 

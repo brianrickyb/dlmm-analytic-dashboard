@@ -12,6 +12,8 @@ export interface PriceRow {
 export interface DirectionResult {
   direction: 'bullish' | 'bearish';
   confidence: number;
+  /** Date (YYYY-MM-DD) of the newest row in the model's training data, when the artifact reports it. */
+  modelDataThrough?: string;
 }
 
 export interface SentimentResult {
@@ -56,7 +58,11 @@ export function createMlService(deps: MlServiceDeps = {}) {
     if ((p.direction !== 'bullish' && p.direction !== 'bearish') || typeof p.confidence !== 'number') {
       throw new MlServiceUnavailableError('ml-service direction response missing expected fields');
     }
-    return { direction: p.direction, confidence: p.confidence };
+    return {
+      direction: p.direction,
+      confidence: p.confidence,
+      ...(typeof p.model_data_through === 'string' ? { modelDataThrough: p.model_data_through } : {}),
+    };
   }
 
   async function getSentiment(text: string): Promise<SentimentResult> {

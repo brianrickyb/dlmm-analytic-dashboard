@@ -13,7 +13,14 @@ import { createNewsService } from './services/rss.js';
 export async function buildServer() {
   const app = Fastify({ logger: true });
 
-  await app.register(cors, { origin: true });
+  // Dev default reflects any origin. Before exposing this API beyond localhost,
+  // set CORS_ALLOWED_ORIGINS to a comma-separated allowlist (e.g. the deployed
+  // frontend origin) — @fastify/cors then echoes only those back.
+  const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  await app.register(cors, { origin: allowedOrigins.length > 0 ? allowedOrigins : true });
   // global: false — only routes that opt in via `config: { rateLimit }`
   // (the RPC-heavy liquidity/positions routes) are limited; everything else
   // is unaffected. MUST be awaited: @fastify/rate-limit hooks into route
