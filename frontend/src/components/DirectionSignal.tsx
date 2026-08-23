@@ -48,6 +48,11 @@ export function DirectionSignal({ status, direction, errorMessage, onRetry }: Di
         not a recommendation. This model's real backtested accuracy (51.7% mean on this horizon)
         is below a 55.6% naive baseline across 2020-2024 — see "How this signal works" below for
         the full picture.
+        {direction.modelDataThrough ? (
+          <>
+            {' '}Model trained on data through <span style={{ color: 'var(--amber)' }}>{direction.modelDataThrough}</span>.
+          </>
+        ) : null}
       </p>
     </div>
   );

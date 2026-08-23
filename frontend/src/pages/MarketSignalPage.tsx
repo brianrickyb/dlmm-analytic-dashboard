@@ -62,7 +62,22 @@ export function MarketSignalPage() {
             macro fundamentals — all in one place.
           </p>
         </div>
-        {signal?.price ? <StatTile label="Spot Price (XAU/USD)" value={formatUsd(signal.price.close)} variant="hero" /> : null}
+        {signal?.price ? (
+          <div className="shrink-0">
+            <StatTile label="Spot Price (XAU/USD)" value={formatUsd(signal.price.close)} variant="hero" />
+            <p className="mt-1 text-right text-xs" style={{ color: 'var(--muted)' }}>
+              As of {signal.freshness.asOf}
+              {signal.freshness.stale ? (
+                <span
+                  className="ml-2 rounded px-1.5 py-0.5 font-bold uppercase"
+                  style={{ color: 'var(--amber)', background: 'var(--amber-muted)' }}
+                >
+                  stale
+                </span>
+              ) : null}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="rounded-xl border-2 p-4 text-sm" style={{ borderColor: 'var(--red)', background: 'var(--card)' }}>
