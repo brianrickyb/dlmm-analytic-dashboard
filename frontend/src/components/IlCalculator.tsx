@@ -123,7 +123,7 @@ export function IlCalculator({ series }: { series: PoolSnapshot[] }) {
   );
 }
 
-function Result({ label, value, accent }: { label: ReactNode; value: string; accent?: string }) {
+export function Result({ label, value, accent }: { label: ReactNode; value: string; accent?: string }) {
   return (
     <div>
       <div className="text-xs" style={{ color: 'var(--muted)' }}>
