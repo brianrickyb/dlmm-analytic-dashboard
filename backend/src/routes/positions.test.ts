@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import { describe, expect, it } from 'vitest';
-import { registerPositionsRoutes, type OnChainPosition } from './positions.js';
+import { registerPositionsRoutes, type OnChainPosition, type PositionCostBasis } from './positions.js';
 
 const wallet = '7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q';
 
@@ -56,6 +56,70 @@ describe('GET /api/positions', () => {
     });
 
     const response = await app.inject({ method: 'GET', url: `/api/positions?wallet=${wallet}` });
+
+    expect(response.statusCode).toBe(503);
+  });
+});
+
+describe('GET /api/positions/:positionAddress/cost-basis', () => {
+  const positionAddress = '95Er1xjjbQkYwgtqAe5s3kYaH4WooferaWVXkd3Apnbz';
+  const poolAddress = '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1';
+
+  it('returns the cost basis when one is resolvable', async () => {
+    const costBasis: PositionCostBasis = {
+      entryDate: '2026-06-01',
+      entryPrice: 1000,
+      depositXAmount: 5,
+      depositYAmount: 500,
+      txSignature: 'sig1',
+    };
+    const app = Fastify();
+    registerPositionsRoutes(app, { fetchPositions: async () => [], fetchCostBasis: async () => costBasis });
+
+    const response = await app.inject({ method: 'GET', url: `/api/positions/${positionAddress}/cost-basis?pool=${poolAddress}` });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ available: true, costBasis });
+  });
+
+  it('returns available: false when cost basis cannot be resolved', async () => {
+    const app = Fastify();
+    registerPositionsRoutes(app, { fetchPositions: async () => [], fetchCostBasis: async () => null });
+
+    const response = await app.inject({ method: 'GET', url: `/api/positions/${positionAddress}/cost-basis?pool=${poolAddress}` });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ available: false });
+  });
+
+  it('returns 400 when the pool query parameter is missing or invalid', async () => {
+    const app = Fastify();
+    registerPositionsRoutes(app, { fetchPositions: async () => [], fetchCostBasis: async () => null });
+
+    const response = await app.inject({ method: 'GET', url: `/api/positions/${positionAddress}/cost-basis` });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('returns 400 when positionAddress is not a valid public key', async () => {
+    const app = Fastify();
+    registerPositionsRoutes(app, { fetchPositions: async () => [], fetchCostBasis: async () => null });
+
+    const response = await app.inject({ method: 'GET', url: `/api/positions/not-a-pubkey/cost-basis?pool=${poolAddress}` });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('returns 503 when Solana RPC is unavailable', async () => {
+    const app = Fastify();
+    registerPositionsRoutes(app, {
+      fetchPositions: async () => [],
+      fetchCostBasis: async () => {
+        throw new (await import('../lib/dlmmError.js')).SolanaUnavailableError();
+      },
+    });
+
+    const response = await app.inject({ method: 'GET', url: `/api/positions/${positionAddress}/cost-basis?pool=${poolAddress}` });
 
     expect(response.statusCode).toBe(503);
   });

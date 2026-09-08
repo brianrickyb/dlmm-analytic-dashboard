@@ -4,6 +4,10 @@ import { createConnection } from '../lib/solanaConnection.js';
 import { loadDlmmSdk } from '../lib/dlmmSdk.js';
 import { SolanaUnavailableError } from '../lib/dlmmError.js';
 import { computePositionSummary } from '../lib/positionMath.js';
+import { createSupabaseAdmin } from '../lib/supabaseAdmin.js';
+import { createMeteoraService, MeteoraUnavailableError } from '../services/meteora.js';
+import { deriveCostBasis, type CostBasisConnection } from '../lib/costBasis.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 function isValidPubkey(value: unknown): value is string {
   if (typeof value !== 'string') return false;
@@ -69,8 +73,103 @@ async function defaultFetchPositions(wallet: string): Promise<OnChainPosition[]>
   return result;
 }
 
-export function registerPositionsRoutes(app: FastifyInstance, deps: { fetchPositions?: FetchPositionsFn } = {}): void {
+export interface PositionCostBasis {
+  entryDate: string;
+  entryPrice: number;
+  depositXAmount: number;
+  depositYAmount: number;
+  txSignature: string;
+}
+
+export type FetchCostBasisFn = (positionAddress: string, poolAddress: string) => Promise<PositionCostBasis | null>;
+
+async function getCachedCostBasis(supabaseAdmin: SupabaseClient, positionAddress: string): Promise<PositionCostBasis | null> {
+  const { data } = await supabaseAdmin
+    .from('position_cost_basis')
+    .select('entry_date, entry_price, deposit_x_amount, deposit_y_amount, tx_signature')
+    .eq('position_address', positionAddress)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    entryDate: data.entry_date,
+    entryPrice: Number(data.entry_price),
+    depositXAmount: Number(data.deposit_x_amount),
+    depositYAmount: Number(data.deposit_y_amount),
+    txSignature: data.tx_signature,
+  };
+}
+
+async function saveCostBasis(
+  supabaseAdmin: SupabaseClient,
+  positionAddress: string,
+  poolAddress: string,
+  costBasis: PositionCostBasis,
+): Promise<void> {
+  await supabaseAdmin.from('position_cost_basis').insert({
+    position_address: positionAddress,
+    pool_address: poolAddress,
+    entry_date: costBasis.entryDate,
+    entry_price: costBasis.entryPrice,
+    deposit_x_amount: costBasis.depositXAmount,
+    deposit_y_amount: costBasis.depositYAmount,
+    tx_signature: costBasis.txSignature,
+  });
+}
+
+async function defaultFetchCostBasis(positionAddress: string, poolAddress: string): Promise<PositionCostBasis | null> {
+  const rpcUrl = process.env.SOLANA_RPC_URL;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+  if (!rpcUrl || !supabaseUrl || !supabaseKey) {
+    throw new SolanaUnavailableError('Server is missing Solana RPC or Supabase configuration.');
+  }
+
+  const supabaseAdmin = createSupabaseAdmin(supabaseUrl, supabaseKey);
+  const cached = await getCachedCostBasis(supabaseAdmin, positionAddress);
+  if (cached) return cached;
+
+  const meteoraService = createMeteoraService({ supabaseAdmin });
+  const pool = await meteoraService.getPoolByAddress(poolAddress);
+  if (!pool) return null;
+
+  const connection = createConnection(rpcUrl);
+  const DLMM = loadDlmmSdk();
+
+  let derived;
+  try {
+    derived = await deriveCostBasis(
+      // web3.js's real Connection.getTransaction is overloaded (a legacy
+      // config without maxSupportedTransactionVersion, and a versioned one
+      // with it) in a way TS can't structurally match against
+      // CostBasisConnection's single simplified signature, even though the
+      // versioned overload accepts exactly the { maxSupportedTransactionVersion }
+      // shape deriveCostBasis calls it with at runtime.
+      { connection: connection as unknown as CostBasisConnection, getPoolHistory: meteoraService.getPoolHistory },
+      {
+        positionAddress,
+        poolAddress,
+        programId: DLMM.LBCLMM_PROGRAM_IDS.devnet,
+        idl: DLMM.IDL,
+        binStep: pool.binStep,
+        decimalsX: pool.tokenX.decimals,
+        decimalsY: pool.tokenY.decimals,
+      },
+    );
+  } catch (err) {
+    throw new SolanaUnavailableError('Failed to derive cost basis from Solana.', { cause: err });
+  }
+  if (!derived) return null;
+
+  await saveCostBasis(supabaseAdmin, positionAddress, poolAddress, derived);
+  return derived;
+}
+
+export function registerPositionsRoutes(
+  app: FastifyInstance,
+  deps: { fetchPositions?: FetchPositionsFn; fetchCostBasis?: FetchCostBasisFn } = {},
+): void {
   const fetchPositions = deps.fetchPositions ?? defaultFetchPositions;
+  const fetchCostBasis = deps.fetchCostBasis ?? defaultFetchCostBasis;
 
   // GET /api/positions triggers a chunked getProgramAccounts scan against the
   // DLMM program (one of the most expensive calls an RPC serves) for any
@@ -91,6 +190,28 @@ export function registerPositionsRoutes(app: FastifyInstance, deps: { fetchPosit
     } catch (err) {
       if (err instanceof SolanaUnavailableError) {
         request.log.error({ err: err.cause ?? err }, 'fetch positions failed');
+        reply.code(503);
+        return { error: err.message };
+      }
+      throw err;
+    }
+  });
+
+  app.get('/api/positions/:positionAddress/cost-basis', async (request, reply) => {
+    const { positionAddress } = request.params as { positionAddress: string };
+    const { pool } = request.query as { pool?: string };
+    if (!isValidPubkey(positionAddress) || !isValidPubkey(pool)) {
+      reply.code(400);
+      return { error: 'A valid positionAddress path segment and pool query parameter are required.' };
+    }
+
+    try {
+      const costBasis = await fetchCostBasis(positionAddress, pool);
+      if (!costBasis) return { available: false };
+      return { available: true, costBasis };
+    } catch (err) {
+      if (err instanceof SolanaUnavailableError || err instanceof MeteoraUnavailableError) {
+        request.log.error({ err }, 'fetch cost basis failed');
         reply.code(503);
         return { error: err.message };
       }
