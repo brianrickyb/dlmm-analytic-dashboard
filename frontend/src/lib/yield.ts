@@ -14,7 +14,7 @@ export interface NetYieldFromFeesResult {
 }
 
 export function netYieldFromFees({ feesEarned, depositValue, impermanentLossPct }: NetYieldFromFeesInput): NetYieldFromFeesResult {
-  const impermanentLossValue = ((depositValue * -impermanentLossPct) / 100) || 0;
+  const impermanentLossValue = ((depositValue * -impermanentLossPct) / 100) + 0; // +0 normalizes -0 to +0 without masking NaN
   const netYield = feesEarned - impermanentLossValue;
   return { impermanentLossValue, netYield, netYieldPct: (netYield / depositValue) * 100 };
 }

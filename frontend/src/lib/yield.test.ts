@@ -154,9 +154,13 @@ describe('netYieldFromFees — unit-agnostic fee/IL combination', () => {
     expect(result.netYieldPct).toBeCloseTo(10, 10);
   });
 
-  it('is unit-agnostic: works identically for quote-token amounts as for USD amounts', () => {
-    const usd = netYieldFromFees({ feesEarned: 20, depositValue: 500, impermanentLossPct: -4 });
-    const quoteToken = netYieldFromFees({ feesEarned: 20, depositValue: 500, impermanentLossPct: -4 });
-    expect(quoteToken).toEqual(usd);
+  it('is unit-agnostic: scales linearly when all monetary inputs are scaled (deposit+fees scaled 10x, IL% unchanged)', () => {
+    const base = netYieldFromFees({ feesEarned: 20, depositValue: 500, impermanentLossPct: -4 });
+    const scaled10x = netYieldFromFees({ feesEarned: 200, depositValue: 5000, impermanentLossPct: -4 });
+
+    // Absolute values scale by 10x, percentage stays the same
+    expect(scaled10x.impermanentLossValue).toBeCloseTo(base.impermanentLossValue * 10, 6);
+    expect(scaled10x.netYield).toBeCloseTo(base.netYield * 10, 6);
+    expect(scaled10x.netYieldPct).toBeCloseTo(base.netYieldPct, 10); // percentage unchanged
   });
 });
