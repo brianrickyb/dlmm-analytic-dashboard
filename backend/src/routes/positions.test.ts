@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
-import { describe, expect, it } from 'vitest';
-import { registerPositionsRoutes, type OnChainPosition, type PositionCostBasis } from './positions.js';
+import { describe, expect, it, vi } from 'vitest';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { registerPositionsRoutes, getCachedCostBasis, saveCostBasis, type OnChainPosition, type PositionCostBasis } from './positions.js';
 
 const wallet = '7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q';
 
@@ -122,5 +123,48 @@ describe('GET /api/positions/:positionAddress/cost-basis', () => {
     const response = await app.inject({ method: 'GET', url: `/api/positions/${positionAddress}/cost-basis?pool=${poolAddress}` });
 
     expect(response.statusCode).toBe(503);
+  });
+});
+
+describe('getCachedCostBasis / saveCostBasis Supabase error handling', () => {
+  function fakeSupabaseAdmin(opts: {
+    maybeSingle?: { data: unknown; error: { message: string } | null };
+    insert?: { error: { message: string } | null };
+  }): SupabaseClient {
+    const select = () => ({
+      eq: () => ({
+        maybeSingle: async () => opts.maybeSingle ?? { data: null, error: null },
+      }),
+    });
+    const insert = async () => opts.insert ?? { error: null };
+    return { from: () => ({ select, insert }) } as unknown as SupabaseClient;
+  }
+
+  it('getCachedCostBasis logs and treats a Supabase read error as a cache miss instead of throwing', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabaseAdmin = fakeSupabaseAdmin({ maybeSingle: { data: null, error: { message: 'db down' } } });
+
+    const result = await getCachedCostBasis(supabaseAdmin, 'some-position');
+
+    expect(result).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith('[positions] failed reading position_cost_basis cache', { message: 'db down' });
+    errorSpy.mockRestore();
+  });
+
+  it('saveCostBasis logs a failed write instead of leaving it silently invisible', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabaseAdmin = fakeSupabaseAdmin({ insert: { error: { message: 'db down' } } });
+    const costBasis: PositionCostBasis = {
+      entryDate: '2026-06-01',
+      entryPrice: 1000,
+      depositXAmount: 5,
+      depositYAmount: 500,
+      txSignature: 'sig1',
+    };
+
+    await expect(saveCostBasis(supabaseAdmin, 'position-1', 'pool-1', costBasis)).resolves.toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalledWith('[positions] failed to persist position_cost_basis', { message: 'db down' });
+    errorSpy.mockRestore();
   });
 });

@@ -46,6 +46,18 @@ export function parseDepositFromMessage(
   message: DepositMessage,
   options: { idl: unknown; programId: string; positionAddress: string },
 ): DepositInstructionAmounts | null {
+  // getTransaction can return a versioned (v0) transaction whose message is
+  // MessageV0 (.compiledInstructions/.staticAccountKeys), not the legacy
+  // Message shape (.instructions/.accountKeys) this function decodes. This
+  // app's own build-tx flow only ever creates legacy transactions, but a
+  // position's earliest deposit could have come from Meteora's own UI, which
+  // may use versioned transactions. Full versioned support would need
+  // address-lookup-table resolution — out of scope here — so this is a
+  // defensive guard: treat a non-legacy message as "cost basis unavailable"
+  // rather than throwing (which the caller would otherwise misreport as a
+  // Solana RPC outage instead of a clean "unavailable").
+  if (!Array.isArray(message.instructions) || !Array.isArray(message.accountKeys)) return null;
+
   const idl = options.idl as DlmmIdl;
   const coder = new BorshInstructionCoder(options.idl as never);
 

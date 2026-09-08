@@ -120,4 +120,21 @@ describe('parseDepositFromMessage', () => {
 
     expect(result).toBeNull();
   });
+
+  it('returns null instead of throwing for a versioned (MessageV0) message, which has no instructions/accountKeys', () => {
+    // MessageV0 exposes .compiledInstructions/.staticAccountKeys instead of the
+    // legacy .instructions/.accountKeys this function decodes. Full versioned
+    // support would need address-lookup-table resolution (out of scope); this
+    // just confirms the mismatch is treated as "cost basis unavailable"
+    // rather than throwing.
+    const messageV0Shaped = { compiledInstructions: [], staticAccountKeys: [] } as unknown as Parameters<typeof parseDepositFromMessage>[0];
+
+    const result = parseDepositFromMessage(messageV0Shaped, {
+      idl: DLMM.IDL,
+      programId: PROGRAM_ID.toBase58(),
+      positionAddress: POSITION.toBase58(),
+    });
+
+    expect(result).toBeNull();
+  });
 });

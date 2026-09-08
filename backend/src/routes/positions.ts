@@ -83,12 +83,15 @@ export interface PositionCostBasis {
 
 export type FetchCostBasisFn = (positionAddress: string, poolAddress: string) => Promise<PositionCostBasis | null>;
 
-async function getCachedCostBasis(supabaseAdmin: SupabaseClient, positionAddress: string): Promise<PositionCostBasis | null> {
-  const { data } = await supabaseAdmin
+export async function getCachedCostBasis(supabaseAdmin: SupabaseClient, positionAddress: string): Promise<PositionCostBasis | null> {
+  const { data, error } = await supabaseAdmin
     .from('position_cost_basis')
     .select('entry_date, entry_price, deposit_x_amount, deposit_y_amount, tx_signature')
     .eq('position_address', positionAddress)
     .maybeSingle();
+  if (error) {
+    console.error('[positions] failed reading position_cost_basis cache', error);
+  }
   if (!data) return null;
   return {
     entryDate: data.entry_date,
@@ -99,13 +102,13 @@ async function getCachedCostBasis(supabaseAdmin: SupabaseClient, positionAddress
   };
 }
 
-async function saveCostBasis(
+export async function saveCostBasis(
   supabaseAdmin: SupabaseClient,
   positionAddress: string,
   poolAddress: string,
   costBasis: PositionCostBasis,
 ): Promise<void> {
-  await supabaseAdmin.from('position_cost_basis').insert({
+  const { error } = await supabaseAdmin.from('position_cost_basis').insert({
     position_address: positionAddress,
     pool_address: poolAddress,
     entry_date: costBasis.entryDate,
@@ -114,6 +117,9 @@ async function saveCostBasis(
     deposit_y_amount: costBasis.depositYAmount,
     tx_signature: costBasis.txSignature,
   });
+  if (error) {
+    console.error('[positions] failed to persist position_cost_basis', error);
+  }
 }
 
 async function defaultFetchCostBasis(positionAddress: string, poolAddress: string): Promise<PositionCostBasis | null> {
