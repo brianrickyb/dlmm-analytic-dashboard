@@ -70,6 +70,8 @@ export interface OnChainPositionInfo {
 interface DlmmStatic {
   create(connection: Connection, poolAddress: PublicKey): Promise<DlmmPool>;
   getAllLbPairPositionsByUser(connection: Connection, userPubKey: PublicKey): Promise<Map<string, OnChainPositionInfo>>;
+  IDL: unknown;
+  LBCLMM_PROGRAM_IDS: Record<string, string>;
 }
 
 export function loadDlmmSdk(): DlmmStatic {
