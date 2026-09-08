@@ -7,7 +7,18 @@ const wallet = '7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q';
 describe('GET /api/positions', () => {
   it('returns on-chain positions for the given wallet', async () => {
     const positions: OnChainPosition[] = [
-      { poolAddress: '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1', positionAddress: '95Er1xjjbQkYwgtqAe5s3kYaH4WooferaWVXkd3Apnbz' },
+      {
+        poolAddress: '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1',
+        positionAddress: '95Er1xjjbQkYwgtqAe5s3kYaH4WooferaWVXkd3Apnbz',
+        lowerBinId: -100,
+        upperBinId: 100,
+        activeBinId: 0,
+        currentPrice: 1000,
+        lowerPrice: 900,
+        upperPrice: 1100,
+        liquidity: { xAmount: 5, yAmount: 500, valueInQuote: 5500 },
+        fees: { xAmount: 0.01, yAmount: 1, valueInQuote: 11 },
+      },
     ];
     const app = Fastify();
     registerPositionsRoutes(app, { fetchPositions: async () => positions });

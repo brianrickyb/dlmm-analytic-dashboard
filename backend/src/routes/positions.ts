@@ -3,6 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import { createConnection } from '../lib/solanaConnection.js';
 import { loadDlmmSdk } from '../lib/dlmmSdk.js';
 import { SolanaUnavailableError } from '../lib/dlmmError.js';
+import { computePositionSummary } from '../lib/positionMath.js';
 
 function isValidPubkey(value: unknown): value is string {
   if (typeof value !== 'string') return false;
@@ -17,6 +18,14 @@ function isValidPubkey(value: unknown): value is string {
 export interface OnChainPosition {
   poolAddress: string;
   positionAddress: string;
+  lowerBinId: number;
+  upperBinId: number;
+  activeBinId: number;
+  currentPrice: number;
+  lowerPrice: number;
+  upperPrice: number;
+  liquidity: { xAmount: number; yAmount: number; valueInQuote: number };
+  fees: { xAmount: number; yAmount: number; valueInQuote: number };
 }
 
 export type FetchPositionsFn = (wallet: string) => Promise<OnChainPosition[]>;
@@ -39,8 +48,22 @@ async function defaultFetchPositions(wallet: string): Promise<OnChainPosition[]>
 
   const result: OnChainPosition[] = [];
   for (const [poolAddress, info] of positionsByPool) {
+    const decimalsX = info.tokenX.mint.decimals;
+    const decimalsY = info.tokenY.mint.decimals;
     for (const position of info.lbPairPositionsData) {
-      result.push({ poolAddress, positionAddress: position.publicKey.toBase58() });
+      const summary = computePositionSummary({
+        lowerBinId: position.positionData.lowerBinId,
+        upperBinId: position.positionData.upperBinId,
+        activeId: info.lbPair.activeId,
+        binStep: info.lbPair.binStep,
+        decimalsX,
+        decimalsY,
+        totalXAmount: position.positionData.totalXAmount,
+        totalYAmount: position.positionData.totalYAmount,
+        feeX: position.positionData.feeX.toString(),
+        feeY: position.positionData.feeY.toString(),
+      });
+      result.push({ poolAddress, positionAddress: position.publicKey.toBase58(), ...summary });
     }
   }
   return result;
