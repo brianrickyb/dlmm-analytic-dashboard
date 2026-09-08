@@ -141,9 +141,18 @@ function PositionRow({ position }: { position: Position }) {
         </p>
       )}
       {pnl.status === 'error' && (
-        <p className="mt-3 text-xs" style={{ color: 'var(--red)' }}>
-          {pnl.message}
-        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <p className="text-xs" style={{ color: 'var(--red)' }}>
+            {pnl.message}
+          </p>
+          <button
+            onClick={() => setPnl({ status: 'idle' })}
+            className="rounded border px-2 py-1 text-xs"
+            style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+          >
+            Retry
+          </button>
+        </div>
       )}
       {pnl.status === 'ready' && computedPnl && (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
