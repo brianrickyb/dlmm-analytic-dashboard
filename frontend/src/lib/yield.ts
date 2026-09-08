@@ -1,6 +1,24 @@
 import type { PoolSnapshot } from '../types/pool';
 import { calculateRangeIL } from './il';
 
+export interface NetYieldFromFeesInput {
+  feesEarned: number;
+  depositValue: number;
+  impermanentLossPct: number;
+}
+
+export interface NetYieldFromFeesResult {
+  impermanentLossValue: number;
+  netYield: number;
+  netYieldPct: number;
+}
+
+export function netYieldFromFees({ feesEarned, depositValue, impermanentLossPct }: NetYieldFromFeesInput): NetYieldFromFeesResult {
+  const impermanentLossValue = ((depositValue * -impermanentLossPct) / 100) || 0;
+  const netYield = feesEarned - impermanentLossValue;
+  return { impermanentLossValue, netYield, netYieldPct: (netYield / depositValue) * 100 };
+}
+
 export interface NetYieldInput {
   depositUsd: number;
   entryDate: string; // ISO date, must match a snapshot in `series`
@@ -54,8 +72,11 @@ export function calculateNetYield({ depositUsd, entryDate, lowerPrice, upperPric
     upperPrice,
   });
 
-  const impermanentLossUsd = (depositUsd * -il.impermanentLossPct) / 100;
-  const netYieldUsd = feesEarnedUsd - impermanentLossUsd;
+  const { impermanentLossValue: impermanentLossUsd, netYield: netYieldUsd, netYieldPct } = netYieldFromFees({
+    feesEarned: feesEarnedUsd,
+    depositValue: depositUsd,
+    impermanentLossPct: il.impermanentLossPct,
+  });
 
   return {
     daysHeld: heldSnapshots.length,
@@ -64,6 +85,6 @@ export function calculateNetYield({ depositUsd, entryDate, lowerPrice, upperPric
     impermanentLossPct: il.impermanentLossPct,
     impermanentLossUsd,
     netYieldUsd,
-    netYieldPct: (netYieldUsd / depositUsd) * 100,
+    netYieldPct,
   };
 }
