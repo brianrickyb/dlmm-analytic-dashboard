@@ -1,17 +1,19 @@
 import { BorshInstructionCoder } from '@coral-xyz/anchor';
 import type { PublicKey } from '@solana/web3.js';
 
+// Deliberately excludes add_liquidity_one_side / add_liquidity_by_strategy_one_side /
+// add_liquidity_one_side_precise(2): these decode to a different shape (a single
+// `amount` field, or an outer `parameter` key instead of `liquidity_parameter`, or a
+// compressed `bins[]` array) that this function doesn't parse. A position whose only
+// deposit used one of these returns null here — deriveCostBasis's caller already
+// treats that as "cost basis unavailable" rather than extracting a wrong number.
 const DEPOSIT_INSTRUCTION_NAMES = new Set([
   'add_liquidity',
   'add_liquidity2',
   'add_liquidity_by_strategy',
   'add_liquidity_by_strategy2',
-  'add_liquidity_by_strategy_one_side',
   'add_liquidity_by_weight',
   'add_liquidity_by_weight2',
-  'add_liquidity_one_side',
-  'add_liquidity_one_side_precise',
-  'add_liquidity_one_side_precise2',
 ]);
 
 export interface DepositInstructionAmounts {

@@ -15,7 +15,7 @@ const POSITION = PublicKey.unique();
 // bin_array_bitmap_extension, user_token_x, user_token_y, reserve_x, reserve_y,
 // token_x_mint, token_y_mint, sender, token_x_program, token_y_program,
 // event_authority, program (14 accounts, position first).
-function buildMessage(ixName: string, ixData: Buffer, positionAtIndex1: boolean) {
+function buildMessage(ixData: Buffer, positionAtIndex1: boolean) {
   const filler = Array.from({ length: 13 }, () => PublicKey.unique());
   const accountKeys = [PROGRAM_ID, positionAtIndex1 ? POSITION : PublicKey.unique(), ...filler];
   return {
@@ -47,7 +47,7 @@ describe('parseDepositFromMessage', () => {
       },
       remaining_accounts_info: { slices: [] },
     });
-    const message = buildMessage('add_liquidity_by_strategy2', data, true);
+    const message = buildMessage(data, true);
 
     const result = parseDepositFromMessage(message, {
       idl: DLMM.IDL,
@@ -69,7 +69,7 @@ describe('parseDepositFromMessage', () => {
       },
       remaining_accounts_info: { slices: [] },
     });
-    const message = buildMessage('add_liquidity_by_strategy2', data, false);
+    const message = buildMessage(data, false);
 
     const result = parseDepositFromMessage(message, {
       idl: DLMM.IDL,
@@ -85,7 +85,7 @@ describe('parseDepositFromMessage', () => {
       liquidity_parameter: { amount_x: new BN(10), amount_y: new BN(20), bin_liquidity_dist: [] },
       remaining_accounts_info: { slices: [] },
     });
-    const message = buildMessage('add_liquidity2', data, true);
+    const message = buildMessage(data, true);
 
     const result = parseDepositFromMessage(message, {
       idl: DLMM.IDL,
