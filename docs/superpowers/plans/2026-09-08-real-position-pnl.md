@@ -1124,11 +1124,9 @@ ALTER TABLE position_cost_basis ENABLE ROW LEVEL SECURITY;
 
 - [ ] **Step 2: Write the failing test for the new route**
 
-Add to `backend/src/routes/positions.test.ts`:
+Add to `backend/src/routes/positions.test.ts`. This file already has `import { registerPositionsRoutes, type OnChainPosition } from './positions.js';` at the top (from Task 1) — extend that existing line to `import { registerPositionsRoutes, type OnChainPosition, type PositionCostBasis } from './positions.js';` rather than adding a second import statement for the same module (TypeScript rejects two import statements naming the same identifier from the same module as duplicate identifiers).
 
 ```ts
-import { registerPositionsRoutes, type OnChainPosition, type PositionCostBasis } from './positions.js';
-
 describe('GET /api/positions/:positionAddress/cost-basis', () => {
   const positionAddress = '95Er1xjjbQkYwgtqAe5s3kYaH4WooferaWVXkd3Apnbz';
   const poolAddress = '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1';
@@ -1575,8 +1573,7 @@ Read `frontend/src/pages/MyPositionsPage.tsx` first (current version only render
 ```tsx
 import { useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { fetchPositions } from '../lib/api/positions';
-import { fetchPositionCostBasis } from '../lib/api/positions';
+import { fetchPositions, fetchPositionCostBasis } from '../lib/api/positions';
 import { usePositionsRefresh } from '../lib/positionsRefresh';
 import { computePositionPnl } from '../lib/positionPnl';
 import { formatPercent, formatPrice } from '../lib/format';
