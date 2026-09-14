@@ -10,6 +10,7 @@ const DLMM = loadDlmmSdk();
 const coder = new BorshInstructionCoder(DLMM.IDL as never);
 const PROGRAM_ID = PublicKey.unique();
 const POSITION = PublicKey.unique();
+const LB_PAIR = PublicKey.unique();
 
 // add_liquidity_by_strategy2's IDL account order: position, lb_pair,
 // bin_array_bitmap_extension, user_token_x, user_token_y, reserve_x, reserve_y,
@@ -17,6 +18,7 @@ const POSITION = PublicKey.unique();
 // event_authority, program (14 accounts, position first).
 function buildMessage(ixData: Buffer, positionAtIndex1: boolean) {
   const filler = Array.from({ length: 13 }, () => PublicKey.unique());
+  filler[0] = LB_PAIR; // account-list index 1 (lb_pair), right after position
   const accountKeys = [PROGRAM_ID, positionAtIndex1 ? POSITION : PublicKey.unique(), ...filler];
   return {
     instructions: [
@@ -55,7 +57,7 @@ describe('parseDepositFromMessage', () => {
       positionAddress: POSITION.toBase58(),
     });
 
-    expect(result).toEqual({ amountX: '123456789', amountY: '987654321', activeId: -55 });
+    expect(result).toEqual({ amountX: '123456789', amountY: '987654321', activeId: -55, lbPair: LB_PAIR.toBase58() });
   });
 
   it('returns null when the instruction targets a different position', () => {
@@ -93,7 +95,7 @@ describe('parseDepositFromMessage', () => {
       positionAddress: POSITION.toBase58(),
     });
 
-    expect(result).toEqual({ amountX: '10', amountY: '20', activeId: null });
+    expect(result).toEqual({ amountX: '10', amountY: '20', activeId: null, lbPair: LB_PAIR.toBase58() });
   });
 
   it('ignores instructions from a different program', () => {

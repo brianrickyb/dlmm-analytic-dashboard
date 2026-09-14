@@ -64,6 +64,12 @@ export async function deriveCostBasis(deps: DeriveCostBasisDeps, input: DeriveCo
     positionAddress: input.positionAddress,
   });
   if (!deposit) return null;
+  // Defense against a caller-supplied `pool` that doesn't match the position's
+  // actual deposit transaction: binStep/decimalsX/decimalsY (which determine
+  // entryPrice below) come from the caller-supplied pool, so a mismatched pool
+  // would silently produce and persist a wrong entryPrice forever (this result
+  // gets inserted into position_cost_basis, a table with no update path).
+  if (deposit.lbPair !== input.poolAddress) return null;
 
   const entryDate = toUtcDay(tx.blockTime);
   const depositXAmount = Number(deposit.amountX) / 10 ** input.decimalsX;

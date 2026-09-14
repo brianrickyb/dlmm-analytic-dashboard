@@ -1,3 +1,6 @@
+// Reimplements the DLMM SDK's own bin-price formula (verified numerically
+// equivalent to getPriceOfBinByBinId) rather than importing the SDK here,
+// to keep this module's math pure and dependency-free.
 export function getPricePerToken(binId: number, binStep: number, decimalsX: number, decimalsY: number): number {
   const rawPrice = Math.pow(1 + binStep / 10_000, binId);
   return rawPrice * Math.pow(10, decimalsX - decimalsY);
@@ -31,6 +34,8 @@ export interface ComputePositionSummaryInput {
   totalYAmount: string;
   feeX: string;
   feeY: string;
+  totalClaimedFeeXAmount: string;
+  totalClaimedFeeYAmount: string;
 }
 
 function toAmounts(rawX: string, rawY: string, decimalsX: number, decimalsY: number, currentPrice: number): PositionAmounts {
@@ -44,6 +49,12 @@ export function computePositionSummary(input: ComputePositionSummaryInput): Posi
   const lowerPrice = getPricePerToken(input.lowerBinId, input.binStep, input.decimalsX, input.decimalsY);
   const upperPrice = getPricePerToken(input.upperBinId, input.binStep, input.decimalsX, input.decimalsY);
 
+  // "Fees earned" means total fees accrued while holding the position, not
+  // just the still-unclaimed portion — sum the raw (pre-decimals) amounts
+  // with BigInt before decimals-dividing, so toAmounts stays reusable as-is.
+  const totalFeeX = (BigInt(input.feeX) + BigInt(input.totalClaimedFeeXAmount)).toString();
+  const totalFeeY = (BigInt(input.feeY) + BigInt(input.totalClaimedFeeYAmount)).toString();
+
   return {
     lowerBinId: input.lowerBinId,
     upperBinId: input.upperBinId,
@@ -52,6 +63,6 @@ export function computePositionSummary(input: ComputePositionSummaryInput): Posi
     lowerPrice,
     upperPrice,
     liquidity: toAmounts(input.totalXAmount, input.totalYAmount, input.decimalsX, input.decimalsY, currentPrice),
-    fees: toAmounts(input.feeX, input.feeY, input.decimalsX, input.decimalsY, currentPrice),
+    fees: toAmounts(totalFeeX, totalFeeY, input.decimalsX, input.decimalsY, currentPrice),
   };
 }

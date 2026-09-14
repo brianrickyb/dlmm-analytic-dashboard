@@ -29,8 +29,10 @@ describe('computePositionSummary', () => {
       decimalsY: 6,
       totalXAmount: String(5 * 10 ** 9), // 5 tokens of X
       totalYAmount: String(500 * 10 ** 6), // 500 tokens of Y
-      feeX: String(0.01 * 10 ** 9),
-      feeY: String(1 * 10 ** 6),
+      feeX: String(0.01 * 10 ** 9), // 0.01 unclaimed X
+      feeY: String(1 * 10 ** 6), // 1 unclaimed Y
+      totalClaimedFeeXAmount: String(0.02 * 10 ** 9), // 0.02 already-claimed X
+      totalClaimedFeeYAmount: String(2 * 10 ** 6), // 2 already-claimed Y
     });
 
     expect(summary.lowerBinId).toBe(-100);
@@ -41,10 +43,12 @@ describe('computePositionSummary', () => {
     expect(summary.liquidity.yAmount).toBeCloseTo(500, 10);
     // valueInQuote = xAmount * currentPrice + yAmount = 5*1000 + 500 = 5500
     expect(summary.liquidity.valueInQuote).toBeCloseTo(5500, 6);
-    expect(summary.fees.xAmount).toBeCloseTo(0.01, 10);
-    expect(summary.fees.yAmount).toBeCloseTo(1, 10);
-    // feesValueInQuote = 0.01*1000 + 1 = 11
-    expect(summary.fees.valueInQuote).toBeCloseTo(11, 6);
+    // fees.xAmount = unclaimed 0.01 + claimed 0.02 = 0.03
+    expect(summary.fees.xAmount).toBeCloseTo(0.03, 10);
+    // fees.yAmount = unclaimed 1 + claimed 2 = 3
+    expect(summary.fees.yAmount).toBeCloseTo(3, 10);
+    // feesValueInQuote = xAmount*currentPrice + yAmount = 0.03*1000 + 3 = 33
+    expect(summary.fees.valueInQuote).toBeCloseTo(33, 6);
   });
 
   it('computes lowerPrice/upperPrice from the bin range, independent of the active bin', () => {
@@ -59,6 +63,8 @@ describe('computePositionSummary', () => {
       totalYAmount: '0',
       feeX: '0',
       feeY: '0',
+      totalClaimedFeeXAmount: '0',
+      totalClaimedFeeYAmount: '0',
     });
 
     expect(summary.lowerPrice).toBeCloseTo(Math.pow(1.001, 50), 10);

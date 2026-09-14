@@ -10,7 +10,8 @@ const DLMM = loadDlmmSdk();
 const coder = new BorshInstructionCoder(DLMM.IDL as never);
 const PROGRAM_ID = PublicKey.unique();
 const POSITION = PublicKey.unique();
-const POOL = 'poolAddress111111111111111111111111111111';
+const LB_PAIR = PublicKey.unique();
+const POOL = LB_PAIR.toBase58();
 
 function depositMessage(activeId: number | null) {
   const data = activeId === null
@@ -29,6 +30,7 @@ function depositMessage(activeId: number | null) {
         remaining_accounts_info: { slices: [] },
       });
   const filler = Array.from({ length: 13 }, () => PublicKey.unique());
+  filler[0] = LB_PAIR; // account-list index 1 (lb_pair), right after position
   return {
     instructions: [{ programIdIndex: 0, accounts: Array.from({ length: 14 }, (_, i) => i + 1), data: bs58.encode(data) }],
     accountKeys: [PROGRAM_ID, POSITION, ...filler],
@@ -127,6 +129,29 @@ describe('deriveCostBasis', () => {
     };
 
     const result = await deriveCostBasis({ connection, getPoolHistory: vi.fn() }, BASE_INPUT);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null when the deposit transaction\'s lb_pair does not match the caller-supplied poolAddress', async () => {
+    // Same fixture as the happy-path active_id-present case, but the request
+    // claims a different pool than the one the deposit actually happened on.
+    // binStep/decimalsX/decimalsY (and therefore entryPrice) are looked up
+    // from the caller-supplied pool, so a mismatch here must not produce a
+    // (wrong) result that then gets persisted forever.
+    const getPoolHistory = vi.fn();
+    const connection = {
+      getSignaturesForAddress: vi.fn().mockResolvedValue([{ signature: 'oldest' }]),
+      getTransaction: vi.fn().mockResolvedValue({
+        blockTime: Date.parse('2026-06-01T00:00:00Z') / 1000,
+        transaction: { message: depositMessage(0) },
+      }),
+    };
+
+    const result = await deriveCostBasis(
+      { connection, getPoolHistory },
+      { ...BASE_INPUT, poolAddress: PublicKey.unique().toBase58() },
+    );
 
     expect(result).toBeNull();
   });

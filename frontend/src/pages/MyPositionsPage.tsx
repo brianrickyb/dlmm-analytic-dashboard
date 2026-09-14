@@ -155,15 +155,21 @@ function PositionRow({ position }: { position: Position }) {
         </div>
       )}
       {pnl.status === 'ready' && computedPnl && (
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Result label="Entry price" value={formatPrice(pnl.costBasis.entryPrice)} />
-          <Result label="Impermanent loss" value={formatPercent(computedPnl.impermanentLossPct)} accent="var(--red)" />
-          <Result
-            label="Net yield"
-            value={`${computedPnl.netYieldQuote.toFixed(6)} (${formatPercent(computedPnl.netYieldPct)})`}
-            accent={computedPnl.netYieldQuote >= 0 ? 'var(--green)' : 'var(--red)'}
-          />
-        </div>
+        <>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Result label="Entry price" value={formatPrice(pnl.costBasis.entryPrice)} />
+            <Result label="Entry date" value={pnl.costBasis.entryDate} />
+            <Result label="Impermanent loss" value={formatPercent(computedPnl.impermanentLossPct)} accent="var(--red)" />
+            <Result
+              label="Net yield"
+              value={`${computedPnl.netYieldQuote.toFixed(6)} (${formatPercent(computedPnl.netYieldPct)})`}
+              accent={computedPnl.netYieldQuote >= 0 ? 'var(--green)' : 'var(--red)'}
+            />
+          </div>
+          <p className="mt-2 text-xs" style={{ color: 'var(--muted)' }}>
+            Based on this position's initial deposit only — if liquidity was added again later, actual cost basis may differ.
+          </p>
+        </>
       )}
     </li>
   );

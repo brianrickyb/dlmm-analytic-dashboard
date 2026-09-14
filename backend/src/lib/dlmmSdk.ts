@@ -44,6 +44,8 @@ export interface OnChainPositionData {
   totalYAmount: string;
   feeX: BN;
   feeY: BN;
+  totalClaimedFeeXAmount: BN;
+  totalClaimedFeeYAmount: BN;
 }
 
 export interface OnChainLbPosition {

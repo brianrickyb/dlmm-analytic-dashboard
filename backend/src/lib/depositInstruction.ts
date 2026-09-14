@@ -20,6 +20,7 @@ export interface DepositInstructionAmounts {
   amountX: string;
   amountY: string;
   activeId: number | null;
+  lbPair: string;
 }
 
 export interface DepositMessage {
@@ -76,6 +77,17 @@ export function parseDepositFromMessage(
     const positionAccountKey = message.accountKeys[ix.accounts[positionIndex]];
     if (!positionAccountKey || positionAccountKey.toBase58() !== options.positionAddress) continue;
 
+    // Every deposit instruction this function decodes also carries `lb_pair` in
+    // its account list (verified against the IDL for all 6 supported instruction
+    // names). Resolving it lets the caller (deriveCostBasis) confirm the deposit
+    // it decoded actually happened on the pool the request claims, instead of
+    // trusting a caller-supplied pool address blindly.
+    const lbPairIndex = idlIx.accounts.findIndex((a) => a.name === 'lb_pair');
+    if (lbPairIndex === -1) continue;
+
+    const lbPairAccountKey = message.accountKeys[ix.accounts[lbPairIndex]];
+    if (!lbPairAccountKey) continue;
+
     const data = decoded.data as Record<string, unknown>;
     const params = data.liquidity_parameter as LiquidityParameter | undefined;
     if (!params || params.amount_x === undefined || params.amount_y === undefined) continue;
@@ -84,6 +96,7 @@ export function parseDepositFromMessage(
       amountX: params.amount_x.toString(),
       amountY: params.amount_y.toString(),
       activeId: typeof params.active_id === 'number' ? params.active_id : null,
+      lbPair: lbPairAccountKey.toBase58(),
     };
   }
 

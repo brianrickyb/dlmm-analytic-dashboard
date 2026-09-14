@@ -129,7 +129,7 @@ describe('GET /api/positions/:positionAddress/cost-basis', () => {
 describe('getCachedCostBasis / saveCostBasis Supabase error handling', () => {
   function fakeSupabaseAdmin(opts: {
     maybeSingle?: { data: unknown; error: { message: string } | null };
-    insert?: { error: { message: string } | null };
+    insert?: { error: { message: string; code?: string } | null };
   }): SupabaseClient {
     const select = () => ({
       eq: () => ({
@@ -165,6 +165,25 @@ describe('getCachedCostBasis / saveCostBasis Supabase error handling', () => {
     await expect(saveCostBasis(supabaseAdmin, 'position-1', 'pool-1', costBasis)).resolves.toBeUndefined();
 
     expect(errorSpy).toHaveBeenCalledWith('[positions] failed to persist position_cost_basis', { message: 'db down' });
+    errorSpy.mockRestore();
+  });
+
+  it('saveCostBasis does not log a 23505 unique-violation (benign concurrent-insert race)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabaseAdmin = fakeSupabaseAdmin({
+      insert: { error: { message: 'duplicate key value violates unique constraint', code: '23505' } },
+    });
+    const costBasis: PositionCostBasis = {
+      entryDate: '2026-06-01',
+      entryPrice: 1000,
+      depositXAmount: 5,
+      depositYAmount: 500,
+      txSignature: 'sig1',
+    };
+
+    await expect(saveCostBasis(supabaseAdmin, 'position-1', 'pool-1', costBasis)).resolves.toBeUndefined();
+
+    expect(errorSpy).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 });

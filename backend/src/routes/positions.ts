@@ -66,6 +66,8 @@ async function defaultFetchPositions(wallet: string): Promise<OnChainPosition[]>
         totalYAmount: position.positionData.totalYAmount,
         feeX: position.positionData.feeX.toString(),
         feeY: position.positionData.feeY.toString(),
+        totalClaimedFeeXAmount: position.positionData.totalClaimedFeeXAmount.toString(),
+        totalClaimedFeeYAmount: position.positionData.totalClaimedFeeYAmount.toString(),
       });
       result.push({ poolAddress, positionAddress: position.publicKey.toBase58(), ...summary });
     }
@@ -117,7 +119,12 @@ export async function saveCostBasis(
     deposit_y_amount: costBasis.depositYAmount,
     tx_signature: costBasis.txSignature,
   });
-  if (error) {
+  // Postgres 23505 = unique_violation on position_address (the primary key).
+  // Under concurrency, two simultaneous first-requests for the same position
+  // can both derive the same (correct) result and race on the insert — the
+  // loser hitting this is benign and expected, not a real failure, so it's
+  // not worth logging.
+  if (error && error.code !== '23505') {
     console.error('[positions] failed to persist position_cost_basis', error);
   }
 }
@@ -162,6 +169,11 @@ async function defaultFetchCostBasis(positionAddress: string, poolAddress: strin
       },
     );
   } catch (err) {
+    // deriveCostBasis's OHLCV fallback (meteoraService.getPoolHistory) can
+    // throw MeteoraUnavailableError, not just a Solana RPC error — let it
+    // propagate as-is so the route's outer catch maps it to 503 correctly
+    // instead of misreporting a Meteora outage as a Solana one.
+    if (err instanceof MeteoraUnavailableError) throw err;
     throw new SolanaUnavailableError('Failed to derive cost basis from Solana.', { cause: err });
   }
   if (!derived) return null;
@@ -203,7 +215,14 @@ export function registerPositionsRoutes(
     }
   });
 
-  app.get('/api/positions/:positionAddress/cost-basis', async (request, reply) => {
+  // Unlike GET /api/positions, this route can trigger a Supabase read, a
+  // Meteora API call, and up to two Solana RPC calls per request (signature
+  // lookup + transaction fetch), for any caller-supplied position address,
+  // unauthenticated — a lower per-IP cap keeps that from becoming a devnet
+  // RPC/Supabase bill.
+  const costBasisRouteOptions = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } };
+
+  app.get('/api/positions/:positionAddress/cost-basis', costBasisRouteOptions, async (request, reply) => {
     const { positionAddress } = request.params as { positionAddress: string };
     const { pool } = request.query as { pool?: string };
     if (!isValidPubkey(positionAddress) || !isValidPubkey(pool)) {

@@ -45,14 +45,14 @@ ALTER TABLE pool_tvl_daily ENABLE ROW LEVEL SECURITY;
 -- not reopen the "no positions cache" decision documented above pool_tvl_daily.
 -- =========================================================
 CREATE TABLE position_cost_basis (
-  position_address  TEXT PRIMARY KEY,
-  pool_address       TEXT NOT NULL,
-  entry_date         DATE NOT NULL,
-  entry_price        NUMERIC NOT NULL,
-  deposit_x_amount   NUMERIC NOT NULL,
-  deposit_y_amount   NUMERIC NOT NULL,
-  tx_signature       TEXT NOT NULL,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+  position_address    TEXT PRIMARY KEY,
+  pool_address        TEXT NOT NULL,
+  entry_date          DATE NOT NULL,
+  entry_price         NUMERIC(24, 6) NOT NULL,
+  deposit_x_amount    NUMERIC(24, 6) NOT NULL,
+  deposit_y_amount    NUMERIC(24, 6) NOT NULL,
+  tx_signature        TEXT NOT NULL,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE position_cost_basis ENABLE ROW LEVEL SECURITY;

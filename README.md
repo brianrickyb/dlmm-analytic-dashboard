@@ -15,7 +15,7 @@ npm run dev          # starts all three: backend :4000, frontend :5173, ml-servi
 | `frontend/` | React 19, Vite, Tailwind v4, Vitest (+ jsdom/@testing-library) | Dark-terminal dashboard: pools, screener, news, positions, auth pages, `/markets/xau` signal page |
 | `backend/` | Fastify 5, TypeScript (Node 22), Vitest | REST API. Reads Meteora/DLMM SDK on-chain data, RSS news, FRED fundamentals, Alpha Vantage gold; proxies ML inference to ml-service; Supabase admin for persistence |
 | `ml-service/` | Python 3.14, FastAPI, uv | Serves the self-trained XAU direction model (`/predict/direction`) and FinBERT sentiment (`/predict/sentiment`) |
-| `db/` | Postgres (Supabase) | `schema.sql` is the LIVE schema — only `pool_tvl_daily`. The partitioned time-series design lives in `schema.aspirational.sql` (archived, never applied) |
+| `db/` | Postgres (Supabase) | `schema.sql` is the LIVE schema — `pool_tvl_daily` and `position_cost_basis`. The partitioned time-series design lives in `schema.aspirational.sql` (archived, never applied) |
 
 Data flow highlights:
 
@@ -42,6 +42,8 @@ Copy each service's `.env.example` to `.env`.
 **ml-service/** — none required to serve; Kaggle creds needed for dataset refresh scripts.
 
 ## Scheduled jobs (deploy checklist)
+
+Before first deploy, apply `db/schema.sql` to the Supabase project — it creates both `pool_tvl_daily` and `position_cost_basis`. If `position_cost_basis` is missing in a fresh environment, the position P&L feature degrades gracefully (every cost-basis request just re-derives from chain and logs an error instead of crashing), but it's worth creating up front rather than relying on that fallback.
 
 Both jobs are idempotent one-off commands meant for external schedulers (Railway Cron, Render Cron) — never in-process timers:
 
