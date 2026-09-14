@@ -10,6 +10,14 @@
       name="description"
       content="Live analytics for Meteora DLMM liquidity pools on Solana — TVL, volume, fee APR, and impermanent loss."
     />
+    <!-- Security: prevent browser from MIME-sniffing the response away from Content-Type -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <!-- Security: prevent clickjacking -->
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <!-- Security: XSS protection (legacy but still useful for older browsers) -->
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <!-- Security: forbid robots from indexing this dashboard -->
+    <meta name="robots" content="noindex, nofollow" />
     <title>DLMM Pool Analytics</title>
   </head>
   <body>

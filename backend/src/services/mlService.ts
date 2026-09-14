@@ -24,14 +24,18 @@ export interface SentimentResult {
 export interface MlServiceDeps {
   fetchImpl?: typeof fetch;
   baseUrl?: string;
+  apiKey?: string;
 }
 
-async function postJson(fetchImpl: typeof fetch, url: string, body: unknown, timeoutMs: number): Promise<unknown> {
+async function postJson(fetchImpl: typeof fetch, url: string, body: unknown, timeoutMs: number, apiKey?: string): Promise<unknown> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['X-API-Key'] = apiKey;
+
   let response: Response;
   try {
     response = await fetchImpl(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(timeoutMs),
     });
@@ -51,9 +55,10 @@ async function postJson(fetchImpl: typeof fetch, url: string, body: unknown, tim
 export function createMlService(deps: MlServiceDeps = {}) {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const baseUrl = deps.baseUrl ?? process.env.ML_SERVICE_URL ?? 'http://localhost:8000';
+  const apiKey = deps.apiKey ?? process.env.ML_SERVICE_API_KEY;
 
   async function getDirection(prices: PriceRow[]): Promise<DirectionResult> {
-    const payload = await postJson(fetchImpl, `${baseUrl}/predict/direction`, { prices }, 15000);
+    const payload = await postJson(fetchImpl, `${baseUrl}/predict/direction`, { prices }, 15000, apiKey);
     const p = payload as Record<string, unknown>;
     if ((p.direction !== 'bullish' && p.direction !== 'bearish') || typeof p.confidence !== 'number') {
       throw new MlServiceUnavailableError('ml-service direction response missing expected fields');
@@ -66,7 +71,7 @@ export function createMlService(deps: MlServiceDeps = {}) {
   }
 
   async function getSentiment(text: string): Promise<SentimentResult> {
-    const payload = await postJson(fetchImpl, `${baseUrl}/predict/sentiment`, { text }, 8000);
+    const payload = await postJson(fetchImpl, `${baseUrl}/predict/sentiment`, { text }, 8000, apiKey);
     const p = payload as Record<string, unknown>;
     if (
       (p.sentiment !== 'positive' && p.sentiment !== 'negative' && p.sentiment !== 'neutral') ||

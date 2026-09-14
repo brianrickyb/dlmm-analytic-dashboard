@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    // Target modern browsers only — avoids shipping polyfills for dead platforms.
+    target: 'es2022',
+    // Disable source maps in production — prevents source-code leakage from
+    // the deployed bundle. Source maps are still available in dev mode.
+    sourcemap: false,
     rollupOptions: {
       output: {
         // Vendor splitting: app code changes on every deploy, these stacks rarely
@@ -21,6 +26,29 @@ export default defineConfig({
           return 'vendor-misc';
         },
       },
+    },
+  },
+  server: {
+    // Restrict the dev server to localhost only — never expose to 0.0.0.0.
+    host: '127.0.0.1',
+    // Security headers for the Vite dev server responses.
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    },
+  },
+  preview: {
+    // Same restrictions for `vite preview` (production-like local server).
+    host: '127.0.0.1',
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     },
   },
 })
