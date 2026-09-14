@@ -18,6 +18,18 @@ export function formatPrice(value: number): string {
   return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
+/**
+ * Spot price formatting per market convention: FX majors quote to the 5th
+ * decimal ("fractional pip"), JPY pairs to 3, and high-priced quotes (gold,
+ * DXY) to 2. `quoteCurrency` picks the symbol -- most pairs here are quoted
+ * in USD, USD/JPY is quoted in yen.
+ */
+export function formatPairPrice(value: number, quoteCurrency: 'USD' | 'JPY'): string {
+  const symbol = quoteCurrency === 'JPY' ? '\u00a5' : '$';
+  const digits = quoteCurrency === 'JPY' ? 3 : value >= 100 ? 2 : 5;
+  return `${symbol}${value.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }

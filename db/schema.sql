@@ -1,4 +1,4 @@
--- DLMM Pool Analytics Dashboard — live schema
+-- Meridian — live schema (pool_tvl_daily only)
 -- Plain PostgreSQL (Supabase).
 --
 -- SCOPE NOTE: an earlier revision of this file also defined tokens, pools,

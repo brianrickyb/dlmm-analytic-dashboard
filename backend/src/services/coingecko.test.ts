@@ -35,7 +35,7 @@ describe('createCoinGeckoService — parsing and sorting', () => {
     const coins = await service.getTrending();
 
     expect(coins).toEqual([
-      { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', marketCapRank: 1, priceUsd: 63000, priceChangePct24h: -2.1 },
+      { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', marketCapRank: 1, priceUsd: 63000, priceChangePct24h: -2.1, sparkline: [] },
     ]);
   });
 
@@ -54,6 +54,52 @@ describe('createCoinGeckoService — parsing and sorting', () => {
     const coins = await service.getTrending();
 
     expect(coins.map((c) => c.id)).toEqual(['brand-new', 'small', 'medium', 'big']);
+  });
+});
+
+describe('createCoinGeckoService — sparkline', () => {
+  function buildFetch(opts: {
+    trendingBody: unknown;
+    marketsBody?: unknown;
+    marketsFails?: boolean;
+  }) {
+    return vi.fn(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes('/search/trending')) {
+        return { ok: true, status: 200, json: async () => opts.trendingBody } as Response;
+      }
+      if (url.includes('/coins/markets')) {
+        if (opts.marketsFails) throw new Error('network down');
+        return { ok: true, status: 200, json: async () => opts.marketsBody } as Response;
+      }
+      throw new Error(`unexpected URL in test: ${url}`);
+    });
+  }
+
+  it('attaches a 7-day sparkline array to each trending coin', async () => {
+    const trendingBody = {
+      coins: [coinItem({ id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', marketCapRank: 1, price: 63000, changePct: -2.1 })],
+    };
+    const marketsBody = [{ id: 'bitcoin', sparkline_in_7d: { price: [100, 101, 99] } }];
+    const fetchImpl = buildFetch({ trendingBody, marketsBody });
+    const service = createCoinGeckoService({ fetchImpl });
+
+    const coins = await service.getTrending();
+
+    expect(coins[0].sparkline).toEqual([100, 101, 99]);
+  });
+
+  it('returns trending coins with an empty sparkline when the markets call fails', async () => {
+    const trendingBody = {
+      coins: [coinItem({ id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', marketCapRank: 1, price: 63000, changePct: -2.1 })],
+    };
+    const fetchImpl = buildFetch({ trendingBody, marketsFails: true });
+    const service = createCoinGeckoService({ fetchImpl });
+
+    const coins = await service.getTrending();
+
+    expect(coins).toHaveLength(1);
+    expect(coins[0].sparkline).toEqual([]);
   });
 });
 

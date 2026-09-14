@@ -4,6 +4,10 @@ import { createBybitService, PAIR_LIST, BybitUnavailableError } from './bybit.js
 function buildFakeFetch(opts: {
   tickers: { symbol: string; fundingRate: string; price24hPcnt: string }[] | 'fail' | 'http-error';
   ratios: Record<string, { buyRatio: string; sellRatio: string } | 'fail' | 'http-error'>;
+  // Close prices as Bybit returns them: newest first. Omitted/absent symbols
+  // fall back to an HTTP error, matching the real endpoint's per-symbol
+  // failure mode for a bad/delisted symbol.
+  klines?: Record<string, string[] | 'fail' | 'http-error'>;
 }) {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = input.toString();
@@ -26,6 +30,22 @@ function buildFakeFetch(opts: {
         ok: true,
         status: 200,
         json: async () => ({ result: { list: [{ symbol, buyRatio: entry.buyRatio, sellRatio: entry.sellRatio }] } }),
+      } as Response;
+    }
+
+    if (url.includes('/v5/market/kline')) {
+      const symbol = new URL(url).searchParams.get('symbol')!;
+      const entry = opts.klines?.[symbol];
+      if (entry === 'fail') throw new Error('network down');
+      if (entry === 'http-error' || !entry) {
+        return { ok: false, status: 500, json: async () => ({}) } as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          result: { list: entry.map((close, i) => [String(1_700_000_000_000 - i * 900_000), close, close, close, close, '10', '10']) },
+        }),
       } as Response;
     }
 
@@ -98,6 +118,36 @@ describe('createBybitService — merge and top-3 computation', () => {
     expect(result.topShortSymbols).toEqual(['BNBUSDT']);
     const overlap = result.topLongSymbols.filter((s) => result.topShortSymbols.includes(s));
     expect(overlap).toEqual([]);
+  });
+});
+
+describe('createBybitService — sparkline', () => {
+  it('attaches a chronological (oldest-first) close-price sparkline to each pair', async () => {
+    const fetchImpl = buildFakeFetch({
+      tickers: buildTickers(),
+      ratios: buildRatios(),
+      klines: { BTCUSDT: ['103', '102', '101'] }, // Bybit order: newest first
+    });
+    const service = createBybitService({ fetchImpl });
+
+    const result = await service.getMajors();
+
+    const btc = result.pairs.find((p) => p.symbol === 'BTCUSDT')!;
+    expect(btc.sparkline).toEqual([101, 102, 103]);
+  });
+
+  it('keeps the pair with an empty sparkline when its kline fetch fails', async () => {
+    const fetchImpl = buildFakeFetch({
+      tickers: buildTickers(),
+      ratios: buildRatios(),
+      klines: { BTCUSDT: 'fail' },
+    });
+    const service = createBybitService({ fetchImpl });
+
+    const result = await service.getMajors();
+
+    const btc = result.pairs.find((p) => p.symbol === 'BTCUSDT')!;
+    expect(btc.sparkline).toEqual([]);
   });
 });
 

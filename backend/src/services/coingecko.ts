@@ -5,6 +5,8 @@ export interface TrendingCoin {
   marketCapRank: number | null;
   priceUsd: number;
   priceChangePct24h: number;
+  /** 7-day price sparkline, oldest first. Empty when the markets lookup fails -- decorative, not critical. */
+  sparkline: number[];
 }
 
 export class CoinGeckoUnavailableError extends Error {}
@@ -17,6 +19,7 @@ export interface CoinGeckoServiceDeps {
 
 const DEFAULT_CACHE_TTL_MS = 10 * 60 * 1000;
 const TRENDING_URL = 'https://api.coingecko.com/api/v3/search/trending';
+const MARKETS_URL = 'https://api.coingecko.com/api/v3/coins/markets';
 
 function parseTrending(payload: unknown): TrendingCoin[] | null {
   if (typeof payload !== 'object' || payload === null || !('coins' in payload)) return null;
@@ -48,6 +51,7 @@ function parseTrending(payload: unknown): TrendingCoin[] | null {
       marketCapRank: typeof item.market_cap_rank === 'number' ? item.market_cap_rank : null,
       priceUsd: data.price,
       priceChangePct24h: priceChange,
+      sparkline: [],
     });
   }
   return result;
@@ -60,6 +64,39 @@ function sortByMarketCapRankDesc(coins: TrendingCoin[]): TrendingCoin[] {
     if (b.marketCapRank === null) return 1;
     return b.marketCapRank - a.marketCapRank;
   });
+}
+
+async function fetchSparklines(fetchImpl: typeof fetch, ids: string[]): Promise<Map<string, number[]>> {
+  if (ids.length === 0) return new Map();
+
+  const params = new URLSearchParams({ vs_currency: 'usd', ids: ids.join(','), sparkline: 'true' });
+  let response: Response;
+  try {
+    response = await fetchImpl(`${MARKETS_URL}?${params}`, { signal: AbortSignal.timeout(8000) });
+  } catch {
+    return new Map();
+  }
+  if (!response.ok) return new Map();
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return new Map();
+  }
+  if (!Array.isArray(payload)) return new Map();
+
+  const map = new Map<string, number[]>();
+  for (const raw of payload) {
+    const item = raw as Record<string, unknown>;
+    if (typeof item.id !== 'string') continue;
+    const sparkline = item.sparkline_in_7d as Record<string, unknown> | undefined;
+    const prices = sparkline?.price;
+    if (Array.isArray(prices)) {
+      map.set(item.id, prices.filter((p): p is number => typeof p === 'number'));
+    }
+  }
+  return map;
 }
 
 export function createCoinGeckoService(deps: CoinGeckoServiceDeps = {}) {
@@ -96,7 +133,10 @@ export function createCoinGeckoService(deps: CoinGeckoServiceDeps = {}) {
       throw new CoinGeckoUnavailableError('CoinGecko response missing expected fields');
     }
 
-    const sorted = sortByMarketCapRankDesc(coins);
+    const sparklineMap = await fetchSparklines(fetchImpl, coins.map((c) => c.id));
+    const withSparkline = coins.map((c) => ({ ...c, sparkline: sparklineMap.get(c.id) ?? [] }));
+
+    const sorted = sortByMarketCapRankDesc(withSparkline);
     cache = { expiresAt: now() + cacheTtlMs, data: sorted };
     return sorted;
   }

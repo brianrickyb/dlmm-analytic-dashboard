@@ -49,6 +49,16 @@ const CURRENCY_ALIASES: Record<string, string[]> = {
   WIF: ['dogwifhat', '$wif'],
   PYTH: ['pyth network', 'pyth'],
   XAU: ['gold', 'xau', 'bullion'],
+  // Forex majors + dollar index -- used by /api/markets/:symbol/signal to pull
+  // market-relevant headlines from the same merged feed.
+  DXY: ['dollar index', 'dxy', 'greenback'],
+  EUR: ['euro', 'eur', 'ecb'],
+  GBP: ['pound', 'sterling', 'gbp', 'boe'],
+  JPY: ['yen', 'jpy', 'boj'],
+  CHF: ['swiss franc', 'franc', 'chf', 'snb'],
+  CAD: ['canadian dollar', 'cad', 'loonie', 'boc'],
+  AUD: ['australian dollar', 'aussie', 'aud', 'rba'],
+  NZD: ['new zealand dollar', 'kiwi', 'nzd', 'rbnz'],
 };
 
 interface RssParserLike {

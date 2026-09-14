@@ -2,6 +2,7 @@ import type { PumpCandidate } from '../types/screener';
 import { formatPercent, formatUsdCompact } from '../lib/format';
 import { Badge } from './Badge';
 import { PillButton } from './PillButton';
+import { ScreenerTable, type ScreenerColumn } from './ScreenerTable';
 
 interface PumpWatchProps {
   status: 'loading' | 'error' | 'ready';
@@ -18,14 +19,65 @@ function poolAge(iso: string): string {
   return `${Math.floor(hours / 24)}d old`;
 }
 
+const columns: ScreenerColumn<PumpCandidate>[] = [
+  {
+    key: 'symbol',
+    header: 'Pool',
+    width: '1.6fr',
+    render: (candidate) => (
+      <div>
+        <div className="flex items-center gap-2 font-semibold" style={{ color: 'var(--text)' }}>
+          {candidate.symbol}
+          {candidate.news ? <Badge variant="accent">News</Badge> : null}
+        </div>
+        <div className="text-xs" style={{ color: 'var(--muted)' }}>
+          {candidate.network} · {candidate.dex}
+        </div>
+      </div>
+    ),
+  },
+  {
+    key: 'priceChangePct6h',
+    header: '6h Change',
+    align: 'right',
+    sortable: true,
+    sortValue: (candidate) => candidate.priceChangePct6h,
+    render: (candidate) => (
+      <span className="tabular-nums font-semibold" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
+        +{formatPercent(candidate.priceChangePct6h)}
+      </span>
+    ),
+  },
+  {
+    key: 'volumeUsd24h',
+    header: '24h Volume',
+    align: 'right',
+    sortable: true,
+    sortValue: (candidate) => candidate.volumeUsd24h,
+    render: (candidate) => (
+      <span className="tabular-nums" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
+        {formatUsdCompact(candidate.volumeUsd24h)}
+      </span>
+    ),
+  },
+  {
+    key: 'poolCreatedAt',
+    header: 'Age',
+    align: 'right',
+    sortable: true,
+    sortValue: (candidate) => -new Date(candidate.poolCreatedAt).getTime(),
+    render: (candidate) => (
+      <span className="tabular-nums text-xs" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+        {poolAge(candidate.poolCreatedAt)}
+      </span>
+    ),
+  },
+];
+
 export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWatchProps) {
   if (status === 'loading') {
     return (
-      <div className="flex flex-wrap gap-2">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 w-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
-        ))}
-      </div>
+      <div className="h-48 animate-pulse rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }} />
     );
   }
 
@@ -40,51 +92,13 @@ export function PumpWatch({ status, candidates, errorMessage, onRetry }: PumpWat
     );
   }
 
-  if (candidates.length === 0) {
-    return (
-      <div className="rounded-xl border p-4 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--muted)' }}>
-        No pools currently match the pump criteria — check back soon.
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-wrap gap-2">
-      {candidates.map((candidate) => (
-        <div
-          key={candidate.poolId}
-          className="min-w-[180px] rounded-xl border px-3 py-2 text-sm"
-          style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-        >
-          <a
-            href={candidate.poolUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-between gap-2 hover:opacity-80"
-          >
-            <span className="font-semibold" style={{ color: 'var(--text)' }}>
-              {candidate.symbol}
-            </span>
-            <span className="tabular-nums text-xs font-semibold" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
-              +{formatPercent(candidate.priceChangePct6h)}
-            </span>
-          </a>
-          <div className="text-xs" style={{ color: 'var(--muted)' }}>
-            {candidate.network} · {formatUsdCompact(candidate.volumeUsd24h)} vol · {poolAge(candidate.poolCreatedAt)}
-          </div>
-          {candidate.news ? (
-            <a
-              href={candidate.news.url}
-              target="_blank"
-              rel="noreferrer"
-              title={candidate.news.title}
-              className="mt-1.5 inline-block hover:opacity-80"
-            >
-              <Badge variant="accent">News</Badge>
-            </a>
-          ) : null}
-        </div>
-      ))}
-    </div>
+    <ScreenerTable
+      columns={columns}
+      rows={candidates}
+      rowKey={(candidate) => candidate.poolId}
+      rowHref={(candidate) => candidate.poolUrl}
+      emptyMessage="No pools currently match the pump criteria — check back soon."
+    />
   );
 }

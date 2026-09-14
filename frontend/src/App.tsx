@@ -44,7 +44,8 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/positions" element={<MyPositionsPage />} />
-                <Route path="/markets/xau" element={<MarketSignalPage />} />
+                <Route path="/markets" element={<MarketSignalPage />} />
+                <Route path="/markets/:symbol" element={<MarketSignalPage />} />
               </Routes>
             </Suspense>
           </Layout>

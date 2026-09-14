@@ -1,15 +1,18 @@
 import type { FastifyInstance } from 'fastify';
 import { createMlService, type DirectionResult, type PriceRow, type SentimentResult } from '../services/mlService.js';
-import { createXauHistoryService, type XauFullHistory } from '../services/xauHistory.js';
+import { createMarketHistoryService, XAU_YAHOO_SYMBOL, type MarketFullHistory } from '../services/marketHistory.js';
 import { createFredService, type FredSummary } from '../services/fred.js';
 import { createNewsService, type NewsPost } from '../services/rss.js';
+import { computeTechnicals, type TechnicalReadout } from '../lib/technicals.js';
+import { computeTechnicalSignal, type TechnicalSignalResult } from '../lib/technicalSignal.js';
 
 interface MlServiceLike {
   getDirection(prices: PriceRow[]): Promise<DirectionResult>;
   getSentiment(text: string): Promise<SentimentResult>;
 }
-interface XauHistoryServiceLike {
-  getFullHistory(): Promise<XauFullHistory>;
+interface MarketHistoryServiceLike {
+  getXauMergedHistory(yahooSymbol?: string): Promise<MarketFullHistory>;
+  getLiveFullHistory(yahooSymbol: string): Promise<MarketFullHistory>;
 }
 interface FredServiceLike {
   getSummary(): Promise<FredSummary>;
@@ -18,9 +21,67 @@ interface NewsServiceLike {
   fetchNews(query: { currencies?: string; source?: string }): Promise<NewsPost[]>;
 }
 
+export interface MarketConfig {
+  /** URL slug, e.g. "eurusd" -> /api/markets/eurusd/signal */
+  key: string;
+  /** Display pair, e.g. "EUR/USD". */
+  pair: string;
+  label: string;
+  /** Underlying symbol on Yahoo Finance's chart endpoint. */
+  yahooSymbol: string;
+  /** TradingView symbol for the embedded chart widget. */
+  tvSymbol: string;
+  /** Currency codes used by the RSS keyword filter (see services/rss.ts aliases). */
+  newsCurrencies: string[];
+  /**
+   * Only XAU gets the ml-service direction call: the classifier is trained on
+   * 22 years of gold closes and would be dishonest to run on any other series.
+   * Other markets still get the deterministic technical readout.
+   */
+  directionModel: boolean;
+}
+
+export const MARKET_CONFIGS: Record<string, MarketConfig> = {
+  xau: {
+    key: 'xau', pair: 'XAU/USD', label: 'Gold', yahooSymbol: XAU_YAHOO_SYMBOL,
+    tvSymbol: 'OANDA:XAUUSD', newsCurrencies: ['XAU'], directionModel: true,
+  },
+  dxy: {
+    key: 'dxy', pair: 'DXY', label: 'Dollar Index', yahooSymbol: 'DX-Y.NYB',
+    tvSymbol: 'TVC:DXY', newsCurrencies: ['DXY'], directionModel: false,
+  },
+  eurusd: {
+    key: 'eurusd', pair: 'EUR/USD', label: 'Euro', yahooSymbol: 'EURUSD=X',
+    tvSymbol: 'OANDA:EURUSD', newsCurrencies: ['EUR'], directionModel: false,
+  },
+  gbpusd: {
+    key: 'gbpusd', pair: 'GBP/USD', label: 'Pound', yahooSymbol: 'GBPUSD=X',
+    tvSymbol: 'OANDA:GBPUSD', newsCurrencies: ['GBP'], directionModel: false,
+  },
+  usdjpy: {
+    key: 'usdjpy', pair: 'USD/JPY', label: 'Yen', yahooSymbol: 'USDJPY=X',
+    tvSymbol: 'OANDA:USDJPY', newsCurrencies: ['JPY'], directionModel: false,
+  },
+  usdchf: {
+    key: 'usdchf', pair: 'USD/CHF', label: 'Swiss Franc', yahooSymbol: 'USDCHF=X',
+    tvSymbol: 'OANDA:USDCHF', newsCurrencies: ['CHF'], directionModel: false,
+  },
+  usdcad: {
+    key: 'usdcad', pair: 'USD/CAD', label: 'Canadian Dollar', yahooSymbol: 'USDCAD=X',
+    tvSymbol: 'OANDA:USDCAD', newsCurrencies: ['CAD'], directionModel: false,
+  },
+  audusd: {
+    key: 'audusd', pair: 'AUD/USD', label: 'Australian Dollar', yahooSymbol: 'AUDUSD=X',
+    tvSymbol: 'OANDA:AUDUSD', newsCurrencies: ['AUD'], directionModel: false,
+  },
+  nzdusd: {
+    key: 'nzdusd', pair: 'NZD/USD', label: 'New Zealand Dollar', yahooSymbol: 'NZDUSD=X',
+    tvSymbol: 'OANDA:NZDUSD', newsCurrencies: ['NZD'], directionModel: false,
+  },
+};
+
 type SectionResult<T> = { data: T; error?: undefined } | { data: null; error: string };
 
-const SUPPORTED_SYMBOLS = new Set(['xau']);
 const NEWS_ARTICLE_LIMIT = 5;
 
 // ml-service's four features are rolling windows whose longest lookback is
@@ -37,10 +98,10 @@ const NEWS_ARTICLE_LIMIT = 5;
 // the ml-service schema warns against.
 const DIRECTION_INPUT_ROWS = 260;
 
-// Gold trades roughly Mon-Fri with occasional holiday gaps, so up to ~4 quiet days
-// is normal. Beyond a week the "spot price" shown in the UI is not current by any
-// reasonable reading and must be labeled stale (e.g. Alpha Vantage down/premium-
-// blocked means the merged history ends at the static CSV forever).
+// Gold/FX trade roughly Mon-Fri with occasional holiday gaps, so up to ~4 quiet
+// days is normal. Beyond a week the "spot price" shown in the UI is not current
+// by any reasonable reading and must be labeled stale (e.g. every live provider
+// down means the merged history ends at the static CSV).
 const PRICE_STALE_AFTER_DAYS = 7;
 
 function utcDayStartMs(dateIso: string): number {
@@ -56,18 +117,30 @@ function reasonMessage(reason: unknown): string {
   return reason instanceof Error ? reason.message : String(reason);
 }
 
+async function fetchFullHistory(
+  historyService: MarketHistoryServiceLike,
+  config: MarketConfig,
+): Promise<MarketFullHistory> {
+  // Only XAU merges against the static multi-decade CSV; everything else is a
+  // straight Yahoo Finance pull.
+  if (config.key === 'xau') {
+    return historyService.getXauMergedHistory(config.yahooSymbol);
+  }
+  return historyService.getLiveFullHistory(config.yahooSymbol);
+}
+
 export function registerMarketsRoutes(
   app: FastifyInstance,
   deps: {
     mlService?: MlServiceLike;
-    xauHistoryService?: XauHistoryServiceLike;
+    marketHistoryService?: MarketHistoryServiceLike;
     fredService?: FredServiceLike;
     newsService?: NewsServiceLike;
     now?: () => number;
   } = {},
 ): void {
   const mlService = deps.mlService ?? createMlService();
-  const xauHistoryService = deps.xauHistoryService ?? createXauHistoryService();
+  const marketHistoryService = deps.marketHistoryService ?? createMarketHistoryService();
   const fredService = deps.fredService ?? createFredService();
   const newsService = deps.newsService ?? createNewsService();
   const now = deps.now ?? Date.now;
@@ -110,50 +183,103 @@ export function registerMarketsRoutes(
     sentimentCache.set(articleId, { result, expiresAt: now() + SENTIMENT_CACHE_TTL_MS });
   }
 
-  // /signal fans out to 6 RSS feeds, a large POST into ml-service, and up to
-  // 5 FinBERT inferences (~2.6s measured latency); /history ships the full
-  // multi-decade daily series per call. Bounded per-IP so a dashboard page polling
-  // on mount can't turn this into an upstream-hammering loop, matching
+  // /signal fans out to 6 RSS feeds, a large POST into ml-service (XAU), and up
+  // to 5 FinBERT inferences (~2.6s measured latency); /history ships a full
+  // daily series per call. Bounded per-IP so a dashboard page polling on mount
+  // can't turn this into an upstream-hammering loop, matching
   // liquidity.ts/positions.ts.
   const routeOptions = { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } };
 
   app.get('/api/markets/:symbol/history', routeOptions, async (request, reply) => {
     const { symbol } = request.params as { symbol: string };
-    if (!SUPPORTED_SYMBOLS.has(symbol)) {
+    const config = MARKET_CONFIGS[symbol];
+    if (!config) {
       reply.code(404);
       return { error: 'Unsupported market symbol.' };
     }
-    const history = await xauHistoryService.getFullHistory();
-    // The underlying data changes at most once a day; an hour is a simple,
-    // reasonable compromise to stop every chart mount re-transferring the
-    // full multi-decade daily series.
-    reply.header('Cache-Control', 'public, max-age=3600');
-    // estimatedFrom lets clients tell apart genuine OHLCV rows from the close-only
-    // synthesized tail (see XauFullHistory for why that distinction matters).
-    return { history: history.rows, estimatedFrom: history.estimatedFrom };
+
+    let history: MarketFullHistory;
+    try {
+      history = await fetchFullHistory(marketHistoryService, config);
+    } catch (err) {
+      request.log.warn({ err }, `history section degraded: ${reasonMessage(err)}`);
+      reply.code(503);
+      return { error: 'Price history is unavailable right now.' };
+    }
+
+    // Live provider data refreshes intraday on the trailing bar, so an hour of
+    // edge caching would show visibly old spot prices; 10 minutes matches the
+    // upstream service's own success-cache TTL without hammering it.
+    reply.header('Cache-Control', 'public, max-age=600');
+    // estimatedFrom lets clients tell apart genuine OHLCV rows from close-only
+    // estimates (only possible on the XAU Alpha-Vantage-fallback path -- see
+    // MarketFullHistory for why that distinction matters).
+    return {
+      market: { key: config.key, pair: config.pair, label: config.label },
+      history: history.rows,
+      estimatedFrom: history.estimatedFrom,
+    };
   });
 
   app.get('/api/markets/:symbol/signal', routeOptions, async (request, reply) => {
     const { symbol } = request.params as { symbol: string };
-    if (!SUPPORTED_SYMBOLS.has(symbol)) {
+    const config = MARKET_CONFIGS[symbol];
+    if (!config) {
       reply.code(404);
       return { error: 'Unsupported market symbol.' };
     }
 
-    const history = await xauHistoryService.getFullHistory();
+    let history: MarketFullHistory;
+    try {
+      history = await fetchFullHistory(marketHistoryService, config);
+    } catch (err) {
+      request.log.warn({ err }, `history section degraded: ${reasonMessage(err)}`);
+      reply.code(503);
+      return { error: 'Price history is unavailable right now.' };
+    }
+
     const price = history.rows.length > 0 ? history.rows[history.rows.length - 1] : null;
+
+    // Deterministic technicals are computed locally from the merged closes --
+    // no extra upstream dependency, available for every market.
+    let technical: SectionResult<TechnicalReadout>;
+    try {
+      technical = { data: computeTechnicals(history.rows) };
+    } catch (err) {
+      request.log.warn({ err }, `technical section degraded: ${reasonMessage(err)}`);
+      technical = { data: null, error: 'Technical readout is unavailable right now.' };
+    }
+
+    // Deterministic directional signal from technical indicators — works for
+    // every market, unlike the ML model which is trained on gold only.
+    let technicalSignal: SectionResult<TechnicalSignalResult>;
+    if (technical.data && price) {
+      const signal = computeTechnicalSignal(technical.data, price.close);
+      if (signal) {
+        technicalSignal = { data: signal };
+      } else {
+        technicalSignal = { data: null, error: 'Not enough price history for a directional signal.' };
+      }
+    } else {
+      technicalSignal = { data: null, error: technical.error ?? 'Technical signal unavailable.' };
+    }
 
     // Only send the model the window it can actually use — see DIRECTION_INPUT_ROWS.
     const directionInput = history.rows.slice(-DIRECTION_INPUT_ROWS);
 
     const [directionSettled, newsSettled, fundamentalsSettled] = await Promise.allSettled([
-      mlService.getDirection(directionInput),
-      newsService.fetchNews({ currencies: 'XAU' }),
+      config.directionModel
+        ? mlService.getDirection(directionInput)
+        : Promise.reject(new Error('not requested for this market')),
+      newsService.fetchNews({ currencies: config.newsCurrencies.join(',') }),
       fredService.getSummary(),
     ]);
 
     let direction: SectionResult<DirectionResult>;
-    if (directionSettled.status === 'fulfilled') {
+    if (!config.directionModel) {
+      // Honest degradation: the model is trained on gold closes only.
+      direction = { data: null, error: 'The ML direction model is calibrated for XAU/USD only.' };
+    } else if (directionSettled.status === 'fulfilled') {
       direction = { data: directionSettled.value };
     } else {
       request.log.warn(
@@ -200,11 +326,14 @@ export function registerMarketsRoutes(
     }
 
     return {
+      market: { key: config.key, pair: config.pair, label: config.label },
       price,
       freshness: {
         asOf: price?.date ?? null,
         stale: price ? isPriceStale(price.date, new Date(now())) : false,
       },
+      technical,
+      technicalSignal,
       direction,
       news,
       fundamentals,

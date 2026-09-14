@@ -34,10 +34,10 @@ const NAV_LINKS: { to: string; label: string; icon: ReactNode }[] = [
   },
   {
     to: '/markets/xau',
-    label: 'Gold Signal',
+    label: 'Forex & Gold',
     icon: (
       <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+        <circle cx="12" cy="12" r="10" /><ellipse cx="12" cy="12" rx="4.5" ry="10" /><path d="M2 12h20" />
       </svg>
     ),
   },
@@ -110,14 +110,14 @@ function Wordmark() {
         className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-sm font-extrabold"
         style={{ background: 'linear-gradient(135deg, var(--green) 0%, var(--green-gradient-end) 100%)', color: 'var(--green-fg)', fontFamily: 'var(--font-mono)' }}
       >
-        D
+        M
       </span>
       <div>
         <div className="text-xs font-bold leading-tight" style={{ color: 'var(--text)' }}>
-          DLMM Pool Analytics
+          Meridian
         </div>
         <div className="text-[10px] leading-tight" style={{ color: 'var(--muted)' }}>
-          Meteora &middot; Solana
+          DeFi &middot; Crypto &middot; FX
         </div>
       </div>
     </>

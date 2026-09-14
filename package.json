@@ -1,5 +1,5 @@
 {
-  "name": "dlmm-analytic-dashboard",
+  "name": "meridian",
   "private": true,
   "scripts": {
     "dev": "concurrently -n backend,frontend,ml-service -c blue,green,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"cd ml-service && uv run uvicorn app.main:app --reload --port 8000\""

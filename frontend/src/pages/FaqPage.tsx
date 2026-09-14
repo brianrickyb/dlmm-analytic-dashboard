@@ -19,11 +19,12 @@ export function FaqPage() {
           About this dashboard
         </h2>
         <p style={{ color: 'var(--muted)' }}>
-          This is a portfolio project analyzing Meteora DLMM pools on Solana, crypto news, and
-          futures market positioning. Nothing on this dashboard — including the trending watchlist
-          and long/short positioning tables — is financial advice or a recommendation to buy or
-          sell anything. The News, Screener, and Pools pages all use live public APIs and may be
-          delayed, incomplete, or wrong. Always verify independently before making decisions.
+          This is a portfolio project analyzing Meteora DLMM pools on Solana, crypto news,
+          futures positioning, and gold &amp; forex markets. Nothing on this dashboard — including
+          the trending watchlist, long/short positioning tables, technical readouts, or the ML
+          direction signal — is financial advice or a recommendation to buy or sell anything. The
+          News, Screener, Pools, and Markets pages all use live public APIs and may be delayed,
+          incomplete, or wrong. Always verify independently before making decisions.
         </p>
       </div>
 

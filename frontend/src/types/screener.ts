@@ -4,6 +4,7 @@ export interface PairPositioning {
   sellRatio: number;
   fundingRate: number;
   price24hPct: number;
+  sparkline: number[];
 }
 
 export interface MajorsResponse {
@@ -19,6 +20,7 @@ export interface TrendingCoin {
   marketCapRank: number | null;
   priceUsd: number;
   priceChangePct24h: number;
+  sparkline: number[];
 }
 
 export interface NewsMatch {

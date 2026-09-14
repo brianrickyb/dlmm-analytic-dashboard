@@ -10,6 +10,8 @@ export interface PairPositioning {
   sellRatio: number;
   fundingRate: number;
   price24hPct: number;
+  /** 24h close-price sparkline, oldest first. Empty when the kline fetch fails -- decorative, not critical. */
+  sparkline: number[];
 }
 
 export interface MajorsResult {
@@ -31,6 +33,11 @@ const TICKERS_URL = 'https://api.bybit.com/v5/market/tickers?category=linear';
 
 function accountRatioUrl(symbol: string): string {
   return `https://api.bybit.com/v5/market/account-ratio?category=linear&symbol=${symbol}&period=5min&limit=1`;
+}
+
+// 15min candles x 96 = 24h of coverage for the sparkline column.
+function klineUrl(symbol: string): string {
+  return `https://api.bybit.com/v5/market/kline?category=linear&symbol=${symbol}&interval=15&limit=96`;
 }
 
 async function fetchBulkTickers(fetchImpl: typeof fetch): Promise<Map<string, { fundingRate: number; price24hPct: number }>> {
@@ -98,6 +105,32 @@ async function fetchAccountRatio(
   return { symbol, buyRatio, sellRatio };
 }
 
+async function fetchKlineCloses(symbol: string, fetchImpl: typeof fetch): Promise<number[]> {
+  let response: Response;
+  try {
+    response = await fetchImpl(klineUrl(symbol), { signal: AbortSignal.timeout(8000) });
+  } catch {
+    return [];
+  }
+  if (!response.ok) return [];
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return [];
+  }
+
+  const list = (payload as { result?: { list?: unknown } })?.result?.list;
+  if (!Array.isArray(list)) return [];
+
+  // Bybit returns candles newest-first; reverse to oldest-first for the sparkline.
+  const closes = list
+    .map((candle) => (Array.isArray(candle) ? Number(candle[4]) : NaN))
+    .filter((close) => !Number.isNaN(close));
+  return closes.reverse();
+}
+
 export function createBybitService(deps: BybitServiceDeps = {}) {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
@@ -111,6 +144,8 @@ export function createBybitService(deps: BybitServiceDeps = {}) {
 
     const tickerMap = await fetchBulkTickers(fetchImpl);
     const ratioResults = await Promise.all(PAIR_LIST.map((symbol) => fetchAccountRatio(symbol, fetchImpl)));
+    const sparklineResults = await Promise.all(PAIR_LIST.map((symbol) => fetchKlineCloses(symbol, fetchImpl)));
+    const sparklineMap = new Map(PAIR_LIST.map((symbol, i) => [symbol, sparklineResults[i]]));
 
     const pairs: PairPositioning[] = [];
     for (const ratio of ratioResults) {
@@ -123,6 +158,7 @@ export function createBybitService(deps: BybitServiceDeps = {}) {
         sellRatio: ratio.sellRatio,
         fundingRate: ticker.fundingRate,
         price24hPct: ticker.price24hPct,
+        sparkline: sparklineMap.get(ratio.symbol) ?? [],
       });
     }
 

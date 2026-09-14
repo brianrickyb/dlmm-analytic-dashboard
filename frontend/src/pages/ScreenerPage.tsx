@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PositioningTable } from '../components/PositioningTable';
 import { TrendingWatch } from '../components/TrendingWatch';
 import { PumpWatch } from '../components/PumpWatch';
@@ -22,6 +22,9 @@ export function ScreenerPage() {
   const [pumpCandidates, setPumpCandidates] = useState<PumpCandidate[]>([]);
   const [pumpError, setPumpError] = useState<string | undefined>(undefined);
   const [pumpRequestId, setPumpRequestId] = useState(0);
+
+  const [search, setSearch] = useState('');
+  const query = search.trim().toLowerCase();
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +83,19 @@ export function ScreenerPage() {
     };
   }, [pumpRequestId]);
 
+  const filteredPairs = useMemo(
+    () => (query ? (majors?.pairs ?? []).filter((p) => p.symbol.toLowerCase().includes(query)) : majors?.pairs ?? []),
+    [majors, query],
+  );
+  const filteredTrending = useMemo(
+    () => (query ? trending.filter((c) => c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query)) : trending),
+    [trending, query],
+  );
+  const filteredPumpCandidates = useMemo(
+    () => (query ? pumpCandidates.filter((c) => c.symbol.toLowerCase().includes(query)) : pumpCandidates),
+    [pumpCandidates, query],
+  );
+
   return (
     <div className="page-enter space-y-6">
       <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
@@ -90,6 +106,16 @@ export function ScreenerPage() {
         seeing a spike in search interest, and freshly created pools showing an unusual price
         move. None of these panels is investment advice — see the FAQ for how to read each term.
       </p>
+
+      <input
+        type="search"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search symbol across all panels…"
+        aria-label="Search symbol across all panels"
+        className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none"
+        style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--text)' }}
+      />
 
       <TradingViewTickerTape />
 
@@ -107,7 +133,7 @@ export function ScreenerPage() {
             </PillButton>
           </div>
         ) : (
-          <PositioningTable pairs={majors!.pairs} topLongSymbols={majors!.topLongSymbols} topShortSymbols={majors!.topShortSymbols} />
+          <PositioningTable pairs={filteredPairs} topLongSymbols={majors!.topLongSymbols} topShortSymbols={majors!.topShortSymbols} />
         )}
       </div>
 
@@ -117,7 +143,7 @@ export function ScreenerPage() {
         </h2>
         <TrendingWatch
           status={trendingStatus}
-          coins={trending}
+          coins={filteredTrending}
           errorMessage={trendingError}
           onRetry={() => setTrendingRequestId((n) => n + 1)}
         />
@@ -136,7 +162,7 @@ export function ScreenerPage() {
         </p>
         <PumpWatch
           status={pumpStatus}
-          candidates={pumpCandidates}
+          candidates={filteredPumpCandidates}
           errorMessage={pumpError}
           onRetry={() => setPumpRequestId((n) => n + 1)}
         />
