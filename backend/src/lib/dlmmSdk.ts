@@ -37,17 +37,43 @@ export interface DlmmPool {
   initializePositionAndAddLiquidityByStrategy(params: InitializePositionAndAddLiquidityParams): Promise<Transaction>;
 }
 
+export interface OnChainPositionData {
+  lowerBinId: number;
+  upperBinId: number;
+  totalXAmount: string;
+  totalYAmount: string;
+  feeX: BN;
+  feeY: BN;
+  totalClaimedFeeXAmount: BN;
+  totalClaimedFeeYAmount: BN;
+}
+
 export interface OnChainLbPosition {
   publicKey: PublicKey;
+  positionData: OnChainPositionData;
+}
+
+export interface OnChainTokenInfo {
+  mint: { decimals: number };
+}
+
+export interface OnChainLbPair {
+  activeId: number;
+  binStep: number;
 }
 
 export interface OnChainPositionInfo {
+  lbPair: OnChainLbPair;
+  tokenX: OnChainTokenInfo;
+  tokenY: OnChainTokenInfo;
   lbPairPositionsData: OnChainLbPosition[];
 }
 
 interface DlmmStatic {
   create(connection: Connection, poolAddress: PublicKey): Promise<DlmmPool>;
   getAllLbPairPositionsByUser(connection: Connection, userPubKey: PublicKey): Promise<Map<string, OnChainPositionInfo>>;
+  IDL: unknown;
+  LBCLMM_PROGRAM_IDS: Record<string, string>;
 }
 
 export function loadDlmmSdk(): DlmmStatic {

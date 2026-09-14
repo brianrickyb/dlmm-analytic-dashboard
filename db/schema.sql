@@ -34,3 +34,25 @@ CREATE TABLE pool_tvl_daily (
 );
 
 ALTER TABLE pool_tvl_daily ENABLE ROW LEVEL SECURITY;
+
+-- =========================================================
+-- position_cost_basis: immutable, derived-once entry price/deposit for a
+-- real wallet position, keyed by the position's own on-chain address. This
+-- is NOT a cache of live position state (on-chain via
+-- getAllLbPairPositionsByUser stays the source of truth for that) — it's an
+-- expensive-to-derive historical fact (decoded from the position's own
+-- deposit transaction) that cannot drift once written, so caching it does
+-- not reopen the "no positions cache" decision documented above pool_tvl_daily.
+-- =========================================================
+CREATE TABLE position_cost_basis (
+  position_address    TEXT PRIMARY KEY,
+  pool_address        TEXT NOT NULL,
+  entry_date          DATE NOT NULL,
+  entry_price         NUMERIC(24, 6) NOT NULL,
+  deposit_x_amount    NUMERIC(24, 6) NOT NULL,
+  deposit_y_amount    NUMERIC(24, 6) NOT NULL,
+  tx_signature        TEXT NOT NULL,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE position_cost_basis ENABLE ROW LEVEL SECURITY;

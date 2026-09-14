@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateNetYield } from './yield';
+import { calculateNetYield, netYieldFromFees } from './yield';
 import type { PoolSnapshot } from '../types/pool';
 
 function snapshot(overrides: Partial<PoolSnapshot>): PoolSnapshot {
@@ -134,5 +134,33 @@ describe('calculateNetYield — very short series (newly-curated live pool)', ()
     expect(result.daysInRange).toBe(1);
     expect(result.impermanentLossPct).toBeCloseTo(0, 10);
     expect(result.feesEarnedUsd).toBeCloseTo(5, 6); // 10000/1_000_000 * 500
+  });
+});
+
+describe('netYieldFromFees — unit-agnostic fee/IL combination', () => {
+  it('matches the hand-derived example from calculateNetYield (fees=45, deposit=10000, IL=-1.819%)', () => {
+    const result = netYieldFromFees({ feesEarned: 45, depositValue: 10_000, impermanentLossPct: -1.819 });
+
+    expect(result.impermanentLossValue).toBeCloseTo(181.9, 1);
+    expect(result.netYield).toBeCloseTo(45 - 181.9, 1);
+    expect(result.netYieldPct).toBeCloseTo(((45 - 181.9) / 10_000) * 100, 3);
+  });
+
+  it('returns zero impermanent loss and netYield === feesEarned when impermanentLossPct is 0', () => {
+    const result = netYieldFromFees({ feesEarned: 100, depositValue: 1_000, impermanentLossPct: 0 });
+
+    expect(result.impermanentLossValue).toBe(0);
+    expect(result.netYield).toBe(100);
+    expect(result.netYieldPct).toBeCloseTo(10, 10);
+  });
+
+  it('is unit-agnostic: scales linearly when all monetary inputs are scaled (deposit+fees scaled 10x, IL% unchanged)', () => {
+    const base = netYieldFromFees({ feesEarned: 20, depositValue: 500, impermanentLossPct: -4 });
+    const scaled10x = netYieldFromFees({ feesEarned: 200, depositValue: 5000, impermanentLossPct: -4 });
+
+    // Absolute values scale by 10x, percentage stays the same
+    expect(scaled10x.impermanentLossValue).toBeCloseTo(base.impermanentLossValue * 10, 6);
+    expect(scaled10x.netYield).toBeCloseTo(base.netYield * 10, 6);
+    expect(scaled10x.netYieldPct).toBeCloseTo(base.netYieldPct, 10); // percentage unchanged
   });
 });
