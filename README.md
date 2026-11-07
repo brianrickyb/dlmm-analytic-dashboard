@@ -9,6 +9,15 @@ npm install          # once at the root (concurrently) and in backend/ + fronten
 npm run dev          # starts all three: backend :4000, frontend :5173, ml-service :8000
 ```
 
+## Features
+
+- **Pool analytics:** Meteora DLMM pool list and detail pages with TVL, volume, fee APR, and history charts.
+- **Impermanent-loss / net-yield calculator:** estimates IL against fee income before you enter a position.
+- **Positions:** wallet-connected position tracking with P&L; transactions are signed client-side.
+- **Market signals:** gold, DXY, and seven major FX pairs, combining technicals, news sentiment, and fundamentals.
+- **Screener and news:** long/short and narrative screener plus a filterable crypto news feed.
+- **Accounts and education:** Supabase Auth, inline tooltips, a glossary, and an FAQ for newer DeFi users.
+
 ## Architecture
 
 | Service | Stack | Role |
